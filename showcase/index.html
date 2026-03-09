@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM — Design System</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050a0e;--s:#0a1118;--el:#0f1a24;--c:#00e5ff;--a:#ff9800;--g:#00e676;--r:#ff1744;
+  --text:#c8dce8;--dim:#4a6a7a;--border:rgba(0,229,255,0.12);--glow:rgba(0,229,255,0.25);
+  --font:'Share Tech Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background-image:repeating-linear-gradient(0deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px),
+  repeating-linear-gradient(90deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px);
+  pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);
+  pointer-events:none;z-index:9999}
+
+/* ── BOOT SCREEN ── */
+#boot{position:fixed;inset:0;background:var(--bg);z-index:10000;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;transition:opacity .6s}
+#boot.done{opacity:0;pointer-events:none}
+#boot-log{font-size:11px;color:var(--dim);line-height:2;text-align:left;width:400px;max-width:90vw}
+#boot-log .ok{color:var(--g)}
+#boot-log .cy{color:var(--c)}
+.boot-reticle{width:80px;height:80px;margin-bottom:32px;position:relative}
+.boot-reticle .r1,.boot-reticle .r2,.boot-reticle .r3{position:absolute;inset:0;border-radius:50%;border:1px solid var(--c)}
+.boot-reticle .r1{border-style:dashed;animation:spin 4s linear infinite}
+.boot-reticle .r2{inset:12px;border-width:2px;animation:spinR 3s linear infinite}
+.boot-reticle .r3{inset:24px;border-style:dotted;animation:spin 2s linear infinite}
+.boot-reticle .dot{position:absolute;top:50%;left:50%;width:6px;height:6px;background:var(--c);
+  border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 12px var(--c)}
+
+/* ── TOP BAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:44px;background:rgba(10,17,24,0.94);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;z-index:100;backdrop-filter:blur(16px)}
+.topbar::before,.topbar::after{content:'';position:absolute;width:12px;height:12px;border-color:var(--c);border-style:solid}
+.topbar::before{top:0;left:0;border-width:2px 0 0 2px}
+.topbar::after{bottom:0;right:0;border-width:0 2px 2px 0}
+.topbar-left{display:flex;align-items:center;gap:16px}
+.topbar-title{font-size:13px;color:var(--c);letter-spacing:.35em;text-transform:uppercase}
+.topbar-title b{color:var(--a)}
+.topbar-right{display:flex;align-items:center;gap:20px;font-size:10px;color:var(--dim);letter-spacing:.12em}
+.dot-live{width:6px;height:6px;border-radius:50%;background:var(--g);display:inline-block;
+  box-shadow:0 0 8px var(--g);animation:pulse 2s infinite;margin-right:4px}
+.clock{color:var(--c);font-size:11px;letter-spacing:.1em}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:44px;left:0;width:200px;bottom:32px;background:rgba(10,17,24,0.96);
+  border-right:1px solid var(--border);z-index:90;padding:12px 0;overflow-y:auto}
+.nav-sec{padding:12px 14px 4px;font-size:8px;color:var(--a);letter-spacing:.25em;text-transform:uppercase}
+.nav-a{display:block;padding:6px 14px 6px 20px;font-size:10px;color:var(--dim);letter-spacing:.1em;
+  text-decoration:none;cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-transform:uppercase}
+.nav-a:hover{color:var(--text);background:rgba(0,229,255,0.04);border-left-color:var(--c)}
+
+/* ── BOTTOM TICKER ── */
+.ticker{position:fixed;bottom:0;left:0;right:0;height:32px;background:rgba(10,17,24,0.96);
+  border-top:1px solid var(--border);overflow:hidden;z-index:100;display:flex;align-items:center}
+.ticker-scroll{white-space:nowrap;font-size:10px;color:var(--dim);letter-spacing:.1em;
+  animation:tickerScroll 40s linear infinite}
+.ticker-scroll .hl{color:var(--c)}
+.ticker-scroll .am{color:var(--a)}
+
+/* ── MAIN ── */
+.main{margin-left:200px;margin-top:44px;margin-bottom:32px;padding:32px;position:relative;z-index:1}
+
+/* ── SECTION ── */
+.sec{margin-bottom:56px}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.sec-id{font-size:9px;color:var(--bg);background:var(--c);padding:2px 8px;letter-spacing:.15em}
+.sec-t{font-size:13px;color:var(--c);letter-spacing:.2em;text-transform:uppercase}
+.sec-desc{font-size:10px;color:var(--dim);margin-bottom:16px;letter-spacing:.05em;line-height:1.7}
+
+/* ── STATS ── */
+.stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:32px}
+.stat{background:var(--s);border:1px solid var(--border);padding:14px 20px;flex:1;min-width:120px;position:relative}
+.stat::before,.stat::after{content:'';position:absolute;width:8px;height:8px;border-color:var(--c);border-style:solid}
+.stat::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
+.stat::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
+.stat-v{font-size:26px;color:var(--c);line-height:1}
+.stat-l{font-size:8px;color:var(--dim);letter-spacing:.15em;text-transform:uppercase;margin-top:4px}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:1100px){.g2,.g3{grid-template-columns:1fr}.g4{grid-template-columns:1fr 1fr}}
+
+/* ── CARD ── */
+.card{background:var(--s);border:1px solid var(--border);padding:24px;position:relative;overflow:hidden}
+.card::before,.card::after{content:'';position:absolute;width:12px;height:12px;border-color:var(--c);border-style:solid;pointer-events:none}
+.card::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.card::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+.card-label{font-size:8px;color:var(--a);letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px}
+
+/* ── BUTTONS ── */
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.btn-p{font-family:var(--font);font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--bg);background:var(--c);border:none;padding:8px 20px;cursor:pointer;transition:all .2s}
+.btn-p:hover{box-shadow:0 0 20px rgba(0,229,255,0.4);transform:translateY(-1px)}
+.btn-g{font-family:var(--font);font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--c);background:transparent;border:1px solid var(--c);padding:8px 20px;cursor:pointer;transition:all .2s}
+.btn-g:hover{background:rgba(0,229,255,0.08);box-shadow:0 0 12px rgba(0,229,255,0.2)}
+.btn-a{font-family:var(--font);font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--a);background:transparent;border:1px solid var(--a);padding:8px 20px;cursor:pointer;transition:all .2s}
+.btn-a:hover{background:rgba(255,152,0,0.1);box-shadow:0 0 12px rgba(255,152,0,0.25)}
+.btn-d{font-family:var(--font);font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--r);background:transparent;border:1px solid var(--r);padding:8px 20px;cursor:pointer;
+  transition:all .2s;animation:alertFlash 2s infinite}
+.btn-d:hover{background:rgba(255,23,68,0.12);box-shadow:0 0 15px rgba(255,23,68,0.3);animation:none}
+.btn-hex{font-family:var(--font);font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--c);background:var(--s);border:1px solid var(--border);padding:8px 28px;cursor:pointer;
+  clip-path:polygon(8% 0,92% 0,100% 50%,92% 100%,8% 100%,0 50%);transition:all .2s}
+.btn-hex:hover{background:rgba(0,229,255,0.1);border-color:var(--c)}
+.btn-icon{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--s);
+  color:var(--c);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-size:14px}
+.btn-icon:hover{border-color:var(--c);box-shadow:0 0 12px var(--glow)}
+.btn-scan{font-family:var(--font);font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--c);background:var(--s);padding:8px 20px;cursor:pointer;border:none;position:relative;overflow:hidden}
+.btn-scan::before{content:'';position:absolute;inset:-2px;
+  background:linear-gradient(90deg,transparent,var(--c),transparent);background-size:200% 100%;
+  animation:borderTrace 2s linear infinite;z-index:-1}
+.btn-scan::after{content:'';position:absolute;inset:1px;background:var(--s);z-index:-1}
+.btn-pill{font-family:var(--font);font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dim);background:var(--s);border:1px solid var(--border);padding:5px 14px;border-radius:20px;
+  cursor:pointer;transition:all .2s}
+.btn-pill.on{color:var(--c);border-color:var(--c);background:rgba(0,229,255,0.08)}
+
+/* ── PANELS ── */
+.panel{background:var(--s);border:1px solid var(--border);position:relative}
+.panel-head{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;
+  font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--c)}
+.panel-body{padding:16px}
+
+/* ── INDICATORS ── */
+.gauge{display:flex;flex-direction:column;align-items:center;gap:8px}
+.gauge svg{width:80px;height:80px}
+.gauge-label{font-size:9px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
+
+/* ── LOADERS ── */
+.loader-card{background:var(--s);border:1px solid var(--border);padding:24px;display:flex;
+  flex-direction:column;align-items:center;gap:16px;min-height:180px;position:relative}
+.loader-label{font-size:8px;color:var(--a);letter-spacing:.2em;text-transform:uppercase;position:absolute;top:8px;left:12px}
+.status-text{font-size:10px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+
+/* ── RADAR ── */
+.radar{width:100px;height:100px;border-radius:50%;position:relative;
+  background:radial-gradient(circle,transparent 29%,rgba(0,229,255,0.06) 30%,transparent 31%,
+  transparent 49%,rgba(0,229,255,0.06) 50%,transparent 51%,
+  transparent 69%,rgba(0,229,255,0.06) 70%,transparent 71%);border:1px solid rgba(0,229,255,0.2)}
+.radar-beam{position:absolute;width:50%;height:50%;top:0;left:50%;transform-origin:0% 100%;
+  background:linear-gradient(75deg,transparent 30%,rgba(0,229,255,0.6));animation:spin 2s linear infinite;border-radius:0 100% 0 0}
+.radar-blip{position:absolute;width:4px;height:4px;background:var(--c);border-radius:50%;animation:blipFade 2s infinite}
+
+/* ── SONAR ── */
+.sonar{width:80px;height:80px;position:relative;display:flex;align-items:center;justify-content:center}
+.sonar-ring{position:absolute;width:20px;height:20px;border:1px solid var(--c);border-radius:50%;animation:sonarPing 2s infinite ease-out}
+.sonar-ring:nth-child(2){animation-delay:.5s}
+.sonar-ring:nth-child(3){animation-delay:1s}
+.sonar-center{width:8px;height:8px;background:var(--c);border-radius:50%;box-shadow:0 0 10px var(--c);animation:pulse 1s infinite}
+
+/* ── WAVEFORM ── */
+.waveform{display:flex;gap:3px;align-items:center;height:28px}
+.wave-bar{width:3px;background:var(--c);animation:waveform 1.2s ease-in-out infinite}
+.wave-bar:nth-child(2){animation-delay:.1s}.wave-bar:nth-child(3){animation-delay:.2s}
+.wave-bar:nth-child(4){animation-delay:.3s}.wave-bar:nth-child(5){animation-delay:.4s}
+.wave-bar:nth-child(6){animation-delay:.5s}.wave-bar:nth-child(7){animation-delay:.6s}
+.wave-bar:nth-child(8){animation-delay:.7s}
+
+/* ── RETICLE ── */
+.reticle{width:80px;height:80px;position:relative}
+.reticle .r1,.reticle .r2,.reticle .r3{position:absolute;inset:0;border-radius:50%;border:1px solid var(--c)}
+.reticle .r1{border-style:dashed;animation:spin 4s linear infinite}
+.reticle .r2{inset:10px;border-width:2px;animation:spinR 3s linear infinite}
+.reticle .r3{inset:20px;border-style:dotted;animation:spin 2s linear infinite}
+.reticle .dot{position:absolute;top:50%;left:50%;width:5px;height:5px;background:var(--c);
+  border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 10px var(--c)}
+.reticle .ch,.reticle .cv{position:absolute;background:var(--c);opacity:.3}
+.reticle .ch{width:100%;height:1px;top:50%}
+.reticle .cv{height:100%;width:1px;left:50%}
+
+/* ── SKELETON ── */
+.skel-line{height:8px;background:rgba(0,229,255,0.06);position:relative;overflow:hidden;margin-bottom:10px}
+.skel-line::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(0,229,255,0.1),transparent);animation:shimmer 1.5s infinite}
+
+/* ── DATA BAR ── */
+.data-bar-track{height:3px;background:rgba(0,229,255,0.1);position:relative;overflow:hidden;margin-bottom:8px}
+.data-bar-fill{position:absolute;top:0;left:0;height:100%;width:30%;background:var(--c);
+  box-shadow:0 0 8px var(--c);animation:loadBarSlide 1.5s ease-in-out infinite}
+.data-bar-label{display:flex;justify-content:space-between;font-size:9px;color:var(--dim);letter-spacing:.1em;margin-bottom:12px}
+
+/* ── DATA DISPLAY TABLE ── */
+.hud-table{width:100%;border-collapse:collapse;font-size:10px}
+.hud-table th{text-align:left;color:var(--c);letter-spacing:.12em;text-transform:uppercase;
+  padding:6px 12px;border-bottom:1px solid var(--border);font-weight:normal}
+.hud-table td{padding:6px 12px;color:var(--dim);border-bottom:1px solid rgba(0,229,255,0.05)}
+.hud-table tr:hover td{color:var(--text);background:rgba(0,229,255,0.03)}
+
+/* ── PERIMETER TRACE ── */
+.perim{background:var(--s);padding:20px;position:relative}
+.perim::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--c) 50%,transparent 50%) top/200% 2px no-repeat,
+  linear-gradient(90deg,transparent 50%,var(--c) 50%) bottom/200% 2px no-repeat,
+  linear-gradient(0deg,var(--c) 50%,transparent 50%) left/2px 200% no-repeat,
+  linear-gradient(0deg,transparent 50%,var(--c) 50%) right/2px 200% no-repeat;animation:perimTrace 3s linear infinite}
+
+/* ── GLITCH TEXT ── */
+.glitch{animation:glitch 3s infinite}
+
+/* ── KEYFRAMES ── */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinR{to{transform:rotate(-360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes blipFade{0%{opacity:1;box-shadow:0 0 6px var(--c)}70%{opacity:.3;box-shadow:none}100%{opacity:.15}}
+@keyframes sonarPing{0%{transform:scale(.5);opacity:1}100%{transform:scale(4);opacity:0}}
+@keyframes waveform{0%,100%{height:4px}50%{height:24px}}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes loadBarSlide{0%{left:-30%;width:30%}50%{width:40%}100%{left:100%;width:30%}}
+@keyframes alertFlash{0%,70%,100%{border-color:var(--r)}85%{border-color:rgba(255,23,68,0.3)}}
+@keyframes borderTrace{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes perimTrace{0%{background-position:200% 0,0% 100%,0 200%,100% 0%}
+  25%{background-position:0% 0,200% 100%,0 200%,100% 0%}
+  50%{background-position:0% 0,0% 100%,0 0%,100% 200%}
+  75%{background-position:200% 0,0% 100%,0 0%,100% 0%}
+  100%{background-position:200% 0,0% 100%,0 200%,100% 0%}}
+@keyframes glitch{0%,90%,100%{text-shadow:none}92%{text-shadow:-2px 0 var(--r),2px 0 var(--c)}
+  94%{text-shadow:2px 0 var(--r),-2px 0 var(--c)}96%{text-shadow:-1px 0 var(--a),1px 0 #2979ff}}
+@keyframes tickerScroll{from{transform:translateX(100%)}to{transform:translateX(-200%)}}
+@keyframes hexPulse{0%,100%{stroke-opacity:.3}50%{stroke-opacity:1}}
+@keyframes scanDown{0%{top:-2px}100%{top:100%}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,229,255,0.4)}
+</style>
+</head>
+<body>
+
+<!-- BOOT SCREEN -->
+<div id="boot">
+  <div class="boot-reticle"><div class="r1"></div><div class="r2"></div><div class="r3"></div><div class="dot"></div></div>
+  <div id="boot-log"></div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-title">AXIOM <b>DESIGN SYSTEM</b></span>
+  </div>
+  <div class="topbar-right">
+    <span><span class="dot-live"></span>SYSTEM ONLINE</span>
+    <span class="clock" id="clock"></span>
+    <span>V2.0</span>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="nav-sec">// components</div>
+  <a class="nav-a" href="#buttons">Buttons</a>
+  <a class="nav-a" href="#panels">Panels</a>
+  <a class="nav-a" href="#indicators">Indicators</a>
+  <a class="nav-a" href="#data">Data Displays</a>
+  <div class="nav-sec">// animations</div>
+  <a class="nav-a" href="#loaders">Loaders</a>
+  <a class="nav-a" href="#area">Area Loaders</a>
+  <a class="nav-a" href="#transitions">Transitions</a>
+  <div class="nav-sec">// system</div>
+  <a class="nav-a" href="#palette">Palette</a>
+  <a class="nav-a" href="#typography">Typography</a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-v">75+</div><div class="stat-l">Components</div></div>
+  <div class="stat"><div class="stat-v">16</div><div class="stat-l">Modules</div></div>
+  <div class="stat"><div class="stat-v">20+</div><div class="stat-l">Animations</div></div>
+  <div class="stat"><div class="stat-v">0</div><div class="stat-l">Dependencies</div></div>
+  <div class="stat"><div class="stat-v">CSS</div><div class="stat-l">Pure Only</div></div>
+</div>
+
+<!-- ═══ BUTTONS ═══ -->
+<div class="sec" id="buttons">
+  <div class="sec-head"><span class="sec-id">01</span><span class="sec-t">Button Systems</span></div>
+  <div class="sec-desc">Primary, ghost, bracket, scan, hex, icon, pill, danger — all CSS-only with hover/active states.</div>
+  <div class="card">
+    <div class="card-label">Primary & Ghost</div>
+    <div class="row">
+      <button class="btn-p">EXECUTE</button>
+      <button class="btn-p" style="font-size:10px;padding:6px 14px">CONFIRM</button>
+      <button class="btn-g">DEPLOY</button>
+      <button class="btn-g">AUTHORIZE</button>
+    </div>
+    <div class="card-label" style="margin-top:16px">Scan & Hex</div>
+    <div class="row">
+      <button class="btn-scan">SCANNING</button>
+      <button class="btn-scan">SYNC DATA</button>
+      <button class="btn-hex">COMMAND</button>
+      <button class="btn-hex">TACTICAL</button>
+    </div>
+    <div class="card-label" style="margin-top:16px">Status & Icons</div>
+    <div class="row">
+      <button class="btn-a">CAUTION</button>
+      <button class="btn-d">ABORT MISSION</button>
+      <button class="btn-g" style="color:var(--g);border-color:var(--g)">ONLINE</button>
+      <button class="btn-icon">+</button>
+      <button class="btn-icon">&#x27F3;</button>
+      <button class="btn-icon">&#x26A1;</button>
+      <button class="btn-icon">&#x2715;</button>
+    </div>
+    <div class="card-label" style="margin-top:16px">Pill Toggles</div>
+    <div class="row">
+      <button class="btn-pill on">WEB</button>
+      <button class="btn-pill on">FILES</button>
+      <button class="btn-pill">VOICE</button>
+      <button class="btn-pill on">MEMORY</button>
+      <button class="btn-pill">TOOLS</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PANELS ═══ -->
+<div class="sec" id="panels">
+  <div class="sec-head"><span class="sec-id">02</span><span class="sec-t">Panel Systems</span></div>
+  <div class="g2">
+    <div class="panel">
+      <div class="panel-head"><span>Intel Feed</span><span style="color:var(--dim);font-size:9px">LIVE</span></div>
+      <div class="panel-body">
+        <div class="skel-line" style="width:80%"></div>
+        <div class="skel-line" style="width:55%"></div>
+        <div class="skel-line" style="width:90%"></div>
+        <div class="skel-line" style="width:40%"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span>Threat Matrix</span><span style="color:var(--a);font-size:9px">&#x26A0; ELEVATED</span></div>
+      <div class="panel-body" style="font-size:10px;color:var(--dim);line-height:2">
+        <div>SECTOR A-7 &nbsp; <span style="color:var(--g)">&#x25CF;</span> CLEAR</div>
+        <div>SECTOR B-3 &nbsp; <span style="color:var(--a)">&#x25CF;</span> MONITORING</div>
+        <div>SECTOR C-9 &nbsp; <span style="color:var(--r)">&#x25CF;</span> ALERT</div>
+        <div>SECTOR D-1 &nbsp; <span style="color:var(--g)">&#x25CF;</span> CLEAR</div>
+      </div>
+    </div>
+    <div class="perim">
+      <span style="font-size:10px;color:var(--dim);letter-spacing:.1em">PERIMETER TRACE PANEL — Animated border traces around content</span>
+    </div>
+    <div class="card" style="text-align:center">
+      <div class="card-label">Data Readout</div>
+      <div style="font-size:32px;color:var(--c);letter-spacing:.15em">247.3<span style="font-size:14px;color:var(--dim)">MB/s</span></div>
+      <div class="data-bar-track"><div class="data-bar-fill"></div></div>
+      <div class="data-bar-label"><span>THROUGHPUT</span><span>74.2%</span></div>
+      <div class="data-bar-track"><div class="data-bar-fill" style="background:var(--a);box-shadow:0 0 8px var(--a);animation-delay:.5s"></div></div>
+      <div class="data-bar-label"><span>LATENCY</span><span>23.1ms</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ INDICATORS ═══ -->
+<div class="sec" id="indicators">
+  <div class="sec-head"><span class="sec-id">03</span><span class="sec-t">Indicators & Gauges</span></div>
+  <div class="g4">
+    <div class="loader-card">
+      <span class="loader-label">Radar</span>
+      <div class="radar">
+        <div class="radar-beam"></div>
+        <div class="radar-blip" style="top:25%;left:60%"></div>
+        <div class="radar-blip" style="top:65%;left:35%;animation-delay:.8s"></div>
+        <div class="radar-blip" style="top:40%;left:70%;animation-delay:1.2s"></div>
+      </div>
+      <span class="status-text">Scanning sector 7G</span>
+    </div>
+    <div class="loader-card">
+      <span class="loader-label">Reticle</span>
+      <div class="reticle">
+        <div class="r1"></div><div class="r2"></div><div class="r3"></div>
+        <div class="ch"></div><div class="cv"></div><div class="dot"></div>
+      </div>
+      <span class="status-text">Acquiring target</span>
+    </div>
+    <div class="loader-card">
+      <span class="loader-label">Sonar</span>
+      <div class="sonar">
+        <div class="sonar-ring"></div><div class="sonar-ring"></div><div class="sonar-ring"></div>
+        <div class="sonar-center"></div>
+      </div>
+      <span class="status-text">Pinging network</span>
+    </div>
+    <div class="loader-card">
+      <span class="loader-label">Waveform</span>
+      <div class="waveform">
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        <div class="wave-bar"></div><div class="wave-bar"></div>
+      </div>
+      <span class="status-text">Receiving signal</span>
+    </div>
+  </div>
+
+  <div style="margin-top:20px">
+    <div class="g3">
+      <div class="loader-card">
+        <span class="loader-label">Segmented</span>
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+          <circle cx="40" cy="40" r="35" stroke="#00e5ff" stroke-width="1" stroke-dasharray="12 6" opacity=".3"/>
+          <circle cx="40" cy="40" r="28" stroke="#00e5ff" stroke-width="2" stroke-dasharray="20 60" stroke-linecap="round">
+            <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="1.5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="40" cy="40" r="20" stroke="#ff9800" stroke-width="1.5" stroke-dasharray="15 50" stroke-linecap="round">
+            <animateTransform attributeName="transform" type="rotate" from="360 40 40" to="0 40 40" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="40" cy="40" r="3" fill="#00e5ff"/>
+        </svg>
+        <span class="status-text">Calibrating</span>
+      </div>
+      <div class="loader-card">
+        <span class="loader-label">Hex Spinner</span>
+        <div style="width:70px;height:70px;position:relative">
+          <svg viewBox="0 0 80 80" fill="none" style="animation:spin 3s linear infinite">
+            <polygon points="40,4 72,22 72,58 40,76 8,58 8,22" stroke="#00e5ff" stroke-width="1" fill="none" opacity=".4"/>
+          </svg>
+          <svg viewBox="0 0 80 80" fill="none" style="position:absolute;inset:8px;animation:spinR 2s linear infinite">
+            <polygon points="40,4 72,22 72,58 40,76 8,58 8,22" stroke="#00e5ff" stroke-width="1.5" fill="none" stroke-dasharray="8 4"/>
+          </svg>
+        </div>
+        <span class="status-text">Initializing</span>
+      </div>
+      <div class="loader-card">
+        <span class="loader-label">Scan Line</span>
+        <div style="width:160px;height:50px;background:var(--s);position:relative;overflow:hidden;border:1px solid rgba(0,229,255,0.1)">
+          <div style="position:absolute;width:100%;height:2px;background:var(--c);box-shadow:0 0 10px var(--c);animation:scanDown 2s linear infinite;left:0;top:-2px"></div>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:.15em;color:var(--dim)">DECRYPTING...</div>
+        </div>
+        <span class="status-text">AES-256 // Layer 3</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DATA DISPLAYS ═══ -->
+<div class="sec" id="data">
+  <div class="sec-head"><span class="sec-id">04</span><span class="sec-t">Data Displays</span></div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-label">Tactical Table</div>
+      <table class="hud-table">
+        <tr><th>Unit</th><th>Status</th><th>Uptime</th><th>Load</th></tr>
+        <tr><td>AXE-01</td><td style="color:var(--g)">ACTIVE</td><td>14d 7h</td><td>47%</td></tr>
+        <tr><td>AXE-02</td><td style="color:var(--a)">STANDBY</td><td>3d 12h</td><td>12%</td></tr>
+        <tr><td>AXE-03</td><td style="color:var(--r)">OFFLINE</td><td>—</td><td>—</td></tr>
+        <tr><td>AXE-04</td><td style="color:var(--g)">ACTIVE</td><td>7d 2h</td><td>83%</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-label">System Metrics</div>
+      <div style="display:flex;gap:20px;margin-bottom:16px">
+        <div style="flex:1;text-align:center">
+          <div style="font-size:28px;color:var(--c)">64<span style="font-size:12px;color:var(--dim)">GB</span></div>
+          <div style="font-size:8px;color:var(--dim);letter-spacing:.15em;margin-top:4px">MEMORY</div>
+        </div>
+        <div style="flex:1;text-align:center">
+          <div style="font-size:28px;color:var(--a)">32<span style="font-size:12px;color:var(--dim)">cores</span></div>
+          <div style="font-size:8px;color:var(--dim);letter-spacing:.15em;margin-top:4px">GPU</div>
+        </div>
+        <div style="flex:1;text-align:center">
+          <div style="font-size:28px;color:var(--g)">99.7<span style="font-size:12px;color:var(--dim)">%</span></div>
+          <div style="font-size:8px;color:var(--dim);letter-spacing:.15em;margin-top:4px">UPTIME</div>
+        </div>
+      </div>
+      <div class="data-bar-track"><div class="data-bar-fill" style="background:var(--g);box-shadow:0 0 8px var(--g)"></div></div>
+      <div class="data-bar-label"><span>CPU UTILIZATION</span><span>47.3%</span></div>
+    </div>
+  </div>
+
+  <!-- Data stream -->
+  <div class="card" style="margin-top:20px;height:140px;overflow:hidden;position:relative">
+    <div class="card-label">Live Data Stream</div>
+    <div style="margin-top:14px;animation:streamScroll 4s linear infinite;font-size:10px;color:var(--dim);line-height:2">
+      <div>[<span style="color:var(--c)">14:32:07</span>] AUTH.VERIFY — Token validated</div>
+      <div>[<span style="color:var(--c)">14:32:07</span>] NET.SYNC — Establishing tunnel...</div>
+      <div>[<span style="color:var(--c)">14:32:08</span>] MEM.LOAD — Reading 247 entries</div>
+      <div>[<span style="color:var(--c)">14:32:08</span>] GPU.INIT — CUDA cores allocated</div>
+      <div>[<span style="color:var(--c)">14:32:09</span>] MDL.LOAD — axe-command-oracle ready</div>
+      <div>[<span style="color:var(--c)">14:32:09</span>] SYS.OK — All systems operational</div>
+      <div>[<span style="color:var(--c)">14:32:07</span>] AUTH.VERIFY — Token validated</div>
+      <div>[<span style="color:var(--c)">14:32:07</span>] NET.SYNC — Establishing tunnel...</div>
+      <div>[<span style="color:var(--c)">14:32:08</span>] MEM.LOAD — Reading 247 entries</div>
+      <div>[<span style="color:var(--c)">14:32:09</span>] SYS.OK — All systems operational</div>
+    </div>
+    <div style="position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(transparent,var(--s))"></div>
+  </div>
+</div>
+@keyframes streamScroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+
+<!-- ═══ AREA LOADERS ═══ -->
+<div class="sec" id="area">
+  <div class="sec-head"><span class="sec-id">06</span><span class="sec-t">Area Loading Animations</span></div>
+  <div class="g2">
+    <div class="card" style="overflow:hidden;position:relative;animation:panelScanIn 2s ease-out infinite">
+      <div class="card-label">Horizontal Scan-In</div>
+      <div style="position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--c),transparent);animation:scanHoriz 2s linear infinite"></div>
+      <span style="font-size:10px;color:var(--dim);letter-spacing:.1em">LOADING INTEL DATA...</span>
+    </div>
+    <div class="card">
+      <div class="card-label">Grid Cell Stagger</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+        <div style="background:var(--el);border:1px solid var(--border);height:40px;animation:cellFadeIn .4s ease-out both"></div>
+        <div style="background:var(--el);border:1px solid var(--border);height:40px;animation:cellFadeIn .4s ease-out both;animation-delay:.08s"></div>
+        <div style="background:var(--el);border:1px solid var(--border);height:40px;animation:cellFadeIn .4s ease-out both;animation-delay:.16s"></div>
+        <div style="background:var(--el);border:1px solid var(--border);height:40px;animation:cellFadeIn .4s ease-out both;animation-delay:.24s"></div>
+        <div style="background:var(--el);border:1px solid var(--border);height:40px;animation:cellFadeIn .4s ease-out both;animation-delay:.32s"></div>
+        <div style="background:var(--el);border:1px solid var(--border);height:40px;animation:cellFadeIn .4s ease-out both;animation-delay:.4s"></div>
+        <div style="background:var(--el);border:1px solid var(--border);height:40px;animation:cellFadeIn .4s ease-out both;animation-delay:.48s"></div>
+        <div style="background:var(--el);border:1px solid var(--border);height:40px;animation:cellFadeIn .4s ease-out both;animation-delay:.56s"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes scanHoriz{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes panelScanIn{0%{border-color:var(--c);box-shadow:0 0 15px rgba(0,229,255,0.15)}50%{border-color:var(--border);box-shadow:none}100%{border-color:var(--border)}}
+@keyframes cellFadeIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+</style>
+
+<!-- ═══ LOADERS ═══ -->
+<div class="sec" id="loaders">
+  <div class="sec-head"><span class="sec-id">05</span><span class="sec-t">Loading Screens & Spinners</span></div>
+  <div class="sec-desc">10 unique loader animations — radar, reticle, sonar, waveform, hex, orbital, segment, scan line, progress bars, typewriter.</div>
+  <div class="card">
+    <div class="card-label">Progress Bars</div>
+    <div class="data-bar-track"><div class="data-bar-fill"></div></div>
+    <div class="data-bar-label"><span>PROCESSING</span><span>47.3%</span></div>
+    <div class="data-bar-track"><div class="data-bar-fill" style="background:var(--a);box-shadow:0 0 8px var(--a);animation-delay:.5s"></div></div>
+    <div class="data-bar-label"><span>UPLOADING</span><span>23.1%</span></div>
+    <div class="data-bar-track"><div class="data-bar-fill" style="background:var(--g);box-shadow:0 0 8px var(--g);animation-delay:1s"></div></div>
+    <div class="data-bar-label"><span>COMPLETE</span><span>89.7%</span></div>
+  </div>
+</div>
+
+<!-- ═══ TRANSITIONS ═══ -->
+<div class="sec" id="transitions">
+  <div class="sec-head"><span class="sec-id">07</span><span class="sec-t">Transitions & Effects</span></div>
+  <div class="g2">
+    <div class="card" style="text-align:center">
+      <div class="card-label">Glitch Text</div>
+      <div class="glitch" style="font-size:18px;color:var(--c);letter-spacing:.2em">AXIOM INTELLIGENCE</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:8px;letter-spacing:.1em">RGB split text-shadow animation</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div class="card-label">Holographic Flicker</div>
+      <div style="position:relative;padding:16px;overflow:hidden">
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,229,255,0.03) 2px,rgba(0,229,255,0.03) 4px);pointer-events:none"></div>
+        <div style="position:absolute;inset:0;background:rgba(0,229,255,0.02);animation:holoFlick .15s infinite"></div>
+        <span style="font-size:11px;color:var(--dim);letter-spacing:.1em;position:relative">ESTABLISHING SECURE CHANNEL...</span>
+      </div>
+    </div>
+  </div>
+</div>
+<style>@keyframes holoFlick{0%{opacity:.28}5%{opacity:.35}10%{opacity:.24}40%{opacity:.27}80%{opacity:.71}100%{opacity:.24}}</style>
+
+<!-- ═══ PALETTE ═══ -->
+<div class="sec" id="palette">
+  <div class="sec-head"><span class="sec-id">08</span><span class="sec-t">Color Palette</span></div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <div style="text-align:center"><div style="width:60px;height:60px;background:#00e5ff;border-radius:4px;margin-bottom:6px"></div><div style="font-size:8px;color:var(--dim)">#00e5ff<br>CYAN</div></div>
+    <div style="text-align:center"><div style="width:60px;height:60px;background:#ff9800;border-radius:4px;margin-bottom:6px"></div><div style="font-size:8px;color:var(--dim)">#ff9800<br>AMBER</div></div>
+    <div style="text-align:center"><div style="width:60px;height:60px;background:#00e676;border-radius:4px;margin-bottom:6px"></div><div style="font-size:8px;color:var(--dim)">#00e676<br>GREEN</div></div>
+    <div style="text-align:center"><div style="width:60px;height:60px;background:#ff1744;border-radius:4px;margin-bottom:6px"></div><div style="font-size:8px;color:var(--dim)">#ff1744<br>RED</div></div>
+    <div style="text-align:center"><div style="width:60px;height:60px;background:#ffd740;border-radius:4px;margin-bottom:6px"></div><div style="font-size:8px;color:var(--dim)">#ffd740<br>GOLD</div></div>
+    <div style="text-align:center"><div style="width:60px;height:60px;background:#2979ff;border-radius:4px;margin-bottom:6px"></div><div style="font-size:8px;color:var(--dim)">#2979ff<br>BLUE</div></div>
+    <div style="text-align:center"><div style="width:60px;height:60px;background:#050a0e;border:1px solid var(--border);border-radius:4px;margin-bottom:6px"></div><div style="font-size:8px;color:var(--dim)">#050a0e<br>BG</div></div>
+    <div style="text-align:center"><div style="width:60px;height:60px;background:#0a1118;border:1px solid var(--border);border-radius:4px;margin-bottom:6px"></div><div style="font-size:8px;color:var(--dim)">#0a1118<br>SURFACE</div></div>
+    <div style="text-align:center"><div style="width:60px;height:60px;background:#c8dce8;border-radius:4px;margin-bottom:6px"></div><div style="font-size:8px;color:var(--dim)">#c8dce8<br>TEXT</div></div>
+    <div style="text-align:center"><div style="width:60px;height:60px;background:#4a6a7a;border-radius:4px;margin-bottom:6px"></div><div style="font-size:8px;color:var(--dim)">#4a6a7a<br>DIM</div></div>
+  </div>
+</div>
+
+<!-- ═══ TYPOGRAPHY ═══ -->
+<div class="sec" id="typography">
+  <div class="sec-head"><span class="sec-id">09</span><span class="sec-t">Typography</span></div>
+  <div class="card">
+    <div style="font-size:28px;color:var(--c);letter-spacing:.2em;margin-bottom:12px">AXIOM SYSTEM</div>
+    <div style="font-size:18px;color:var(--text);letter-spacing:.15em;margin-bottom:12px">Share Tech Mono — Primary</div>
+    <div style="font-size:13px;color:var(--dim);letter-spacing:.1em;margin-bottom:12px">ALL CAPS WITH WIDE TRACKING FOR HEADERS AND LABELS</div>
+    <div style="font-size:11px;color:var(--dim);letter-spacing:.08em;line-height:1.8">
+      Body text at 11px with generous line-height for readability in low-light tactical environments.
+      The monospace font ensures consistent character width for data alignment and terminal aesthetics.
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-scroll">
+    <span class="hl">AXIOM</span> DESIGN SYSTEM V2.0 &nbsp;&#x2502;&nbsp;
+    <span class="am">75+</span> COMPONENTS &nbsp;&#x2502;&nbsp;
+    16 MODULES &nbsp;&#x2502;&nbsp;
+    20+ ANIMATIONS &nbsp;&#x2502;&nbsp;
+    ZERO DEPENDENCIES &nbsp;&#x2502;&nbsp;
+    <span class="hl">PURE CSS</span> ARCHITECTURE &nbsp;&#x2502;&nbsp;
+    SHARE TECH MONO TYPOGRAPHY &nbsp;&#x2502;&nbsp;
+    <span class="am">MILITARY HUD</span> COMMAND CENTER AESTHETIC &nbsp;&#x2502;&nbsp;
+    AXE TECHNOLOGY INTELLIGENCE PLATFORM &nbsp;&#x2502;&nbsp;
+  </div>
+</div>
+
+<script>
+// Clock
+function updateClock(){
+  const d=new Date();
+  const utc=d.toISOString().substr(11,8);
+  document.getElementById('clock').textContent='UTC '+utc;
+}
+setInterval(updateClock,1000);updateClock();
+
+// Boot sequence
+const lines=[
+  '[SYS.INIT] Loading AXIOM Design System...',
+  '[MEM.CHECK] <span class="ok">64GB unified memory — OK</span>',
+  '[GPU.INIT] <span class="cy">32 GPU cores allocated</span>',
+  '[CSS.LOAD] 75+ components registered',
+  '[ANM.INIT] 20+ animations compiled',
+  '[NET.SYNC] <span class="ok">All modules online</span>',
+  '[SYS.READY] <span class="cy">AXIOM DESIGN SYSTEM — OPERATIONAL</span>'
+];
+const log=document.getElementById('boot-log');
+let i=0;
+function bootLine(){
+  if(i<lines.length){log.innerHTML+=lines[i]+'<br>';i++;setTimeout(bootLine,250);}
+  else{setTimeout(()=>{document.getElementById('boot').classList.add('done');setTimeout(()=>document.getElementById('boot').remove(),600)},500)}
+}
+setTimeout(bootLine,300);
+</script>
+</body>
+</html>

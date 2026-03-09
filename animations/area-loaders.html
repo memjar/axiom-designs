@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM — Area Loading Animations</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--c:#00e5ff;--a:#ff9800;--bg:#050a0e;--s:#0a1118;--dim:#4a6a7a;--text:#c8dce8;
+  --font:'Share Tech Mono',monospace;--border:rgba(0,229,255,0.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font);padding:40px;
+  background-image:repeating-linear-gradient(0deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px),
+  repeating-linear-gradient(90deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px)}
+h2{color:var(--c);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin:48px 0 24px;
+  padding-bottom:8px;border-bottom:1px solid var(--border)}
+.demo{margin-bottom:40px}
+.label{font-size:10px;color:var(--dim);letter-spacing:0.15em;margin-bottom:12px;text-transform:uppercase}
+
+/* ── 1. FULL PANEL SCAN-IN ── */
+.panel-scan{
+  background:var(--s);border:1px solid var(--border);padding:24px;position:relative;overflow:hidden;
+  animation:panelScanIn 2s ease-out infinite;
+}
+.panel-scan::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--c),transparent);
+  animation:scanHoriz 2s linear infinite;
+}
+.panel-scan::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,229,255,0.04),transparent);
+  animation:fadeWipe 2s ease-out infinite;pointer-events:none;
+}
+@keyframes scanHoriz{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes fadeWipe{0%{opacity:1}100%{opacity:0}}
+@keyframes panelScanIn{0%{border-color:var(--c);box-shadow:0 0 15px rgba(0,229,255,0.15)}
+  50%{border-color:var(--border);box-shadow:none}100%{border-color:var(--border)}}
+
+/* ── 2. GRID CELL STAGGER ── */
+.grid-stagger{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.grid-cell{background:var(--s);border:1px solid var(--border);height:60px;position:relative;
+  animation:cellFadeIn 0.4s ease-out both}
+.grid-cell::before{content:'';position:absolute;inset:0;background:rgba(0,229,255,0.05);
+  animation:cellPulse 2s ease-in-out infinite}
+.grid-cell:nth-child(1){animation-delay:0s}.grid-cell:nth-child(2){animation-delay:0.08s}
+.grid-cell:nth-child(3){animation-delay:0.16s}.grid-cell:nth-child(4){animation-delay:0.24s}
+.grid-cell:nth-child(5){animation-delay:0.32s}.grid-cell:nth-child(6){animation-delay:0.4s}
+.grid-cell:nth-child(7){animation-delay:0.48s}.grid-cell:nth-child(8){animation-delay:0.56s}
+@keyframes cellFadeIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+@keyframes cellPulse{0%,100%{background:rgba(0,229,255,0.02)}50%{background:rgba(0,229,255,0.06)}}
+
+/* ── 3. SKELETON HUD LINES ── */
+.skeleton-hud{background:var(--s);border:1px solid var(--border);padding:20px;display:flex;flex-direction:column;gap:12px}
+.skel-line{height:8px;background:rgba(0,229,255,0.06);border-radius:0;position:relative;overflow:hidden}
+.skel-line::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(0,229,255,0.1),transparent);
+  animation:shimmer 1.5s infinite}
+.skel-line:nth-child(1){width:80%}.skel-line:nth-child(2){width:60%}
+.skel-line:nth-child(3){width:90%}.skel-line:nth-child(4){width:45%}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* ── 4. BRACKET REVEAL ── */
+.bracket-reveal{position:relative;background:var(--s);border:1px solid transparent;padding:24px;
+  animation:bracketReveal 2s ease-out infinite}
+.bracket-reveal::before,.bracket-reveal::after{content:'';position:absolute;width:0;height:0;
+  border-color:var(--c);border-style:solid;transition:all 0.3s;animation:bracketGrow 1s ease-out both}
+.bracket-reveal::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.bracket-reveal::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+@keyframes bracketGrow{0%{width:0;height:0}50%{width:24px;height:0}100%{width:24px;height:24px}}
+@keyframes bracketReveal{0%{border-color:rgba(0,229,255,0.15)}50%{border-color:var(--border)}100%{border-color:var(--border)}}
+
+/* ── 5. HOLOGRAPHIC FLICKER ── */
+.holo-flicker{background:var(--s);border:1px solid var(--border);padding:24px;position:relative;overflow:hidden}
+.holo-flicker::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,229,255,0.03) 2px,rgba(0,229,255,0.03) 4px);
+  pointer-events:none}
+.holo-flicker::after{content:'';position:absolute;inset:0;
+  background:rgba(0,229,255,0.02);animation:holoFlick 0.15s infinite}
+@keyframes holoFlick{0%{opacity:0.28}5%{opacity:0.35}10%{opacity:0.24}20%{opacity:0.18}
+  40%{opacity:0.27}60%{opacity:0.20}80%{opacity:0.71}100%{opacity:0.24}}
+
+/* ── 6. PERIMETER TRACE ── */
+.perim-trace{background:var(--s);padding:24px;position:relative}
+.perim-trace::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--c) 50%,transparent 50%) top/200% 2px no-repeat,
+  linear-gradient(90deg,transparent 50%,var(--c) 50%) bottom/200% 2px no-repeat,
+  linear-gradient(0deg,var(--c) 50%,transparent 50%) left/2px 200% no-repeat,
+  linear-gradient(0deg,transparent 50%,var(--c) 50%) right/2px 200% no-repeat;
+  animation:perimTrace 3s linear infinite}
+@keyframes perimTrace{0%{background-position:200% 0,0% 100%,0 200%,100% 0%}
+  25%{background-position:0% 0,200% 100%,0 200%,100% 0%}
+  50%{background-position:0% 0,0% 100%,0 0%,100% 200%}
+  75%{background-position:200% 0,0% 100%,0 0%,100% 0%}
+  100%{background-position:200% 0,0% 100%,0 200%,100% 0%}}
+
+/* ── 7. DATA STREAM ── */
+.data-stream{background:var(--s);border:1px solid var(--border);padding:16px;font-size:10px;
+  height:120px;overflow:hidden;position:relative}
+.data-stream-inner{animation:streamScroll 4s linear infinite}
+.data-stream::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;
+  background:linear-gradient(transparent,var(--s))}
+.stream-line{color:var(--dim);line-height:1.8;white-space:nowrap}
+.stream-line .hl{color:var(--c)}
+@keyframes streamScroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+
+/* ── 8. TACTICAL MAP LOAD ── */
+.tac-map{background:var(--s);border:1px solid var(--border);height:200px;position:relative;overflow:hidden;
+  background-image:repeating-linear-gradient(0deg,rgba(0,229,255,0.04) 0 1px,transparent 1px 20px),
+  repeating-linear-gradient(90deg,rgba(0,229,255,0.04) 0 1px,transparent 1px 20px)}
+.tac-map-sweep{position:absolute;inset:0;background:linear-gradient(180deg,
+  rgba(0,229,255,0.08),transparent 30%);animation:mapSweep 3s ease-in-out infinite}
+.tac-map-crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+.tac-map-crosshair::before{content:'';position:absolute;width:40px;height:1px;background:var(--c);
+  left:-20px;top:0;opacity:0.4}
+.tac-map-crosshair::after{content:'';position:absolute;height:40px;width:1px;background:var(--c);
+  top:-20px;left:0;opacity:0.4}
+.tac-dot{position:absolute;width:6px;height:6px;background:var(--c);border-radius:50%;
+  animation:hudPulse 1.5s infinite}
+@keyframes mapSweep{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
+@keyframes hudPulse{0%,100%{opacity:1;box-shadow:0 0 6px var(--c)}50%{opacity:0.3;box-shadow:none}}
+</style>
+</head>
+<body>
+<h2>// AREA LOADING ANIMATIONS — PANEL LEVEL</h2>
+
+<div class="demo">
+  <p class="label">1. HORIZONTAL SCAN-IN (panel loading)</p>
+  <div class="panel-scan">
+    <span style="font-size:11px;color:var(--dim);letter-spacing:0.1em">LOADING INTEL DATA...</span>
+  </div>
+</div>
+
+<div class="demo">
+  <p class="label">2. GRID CELL STAGGER (dashboard tiles)</p>
+  <div class="grid-stagger">
+    <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+    <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+  </div>
+</div>
+
+<div class="demo">
+  <p class="label">3. SKELETON HUD LINES (content placeholder)</p>
+  <div class="skeleton-hud">
+    <div class="skel-line"></div><div class="skel-line"></div><div class="skel-line"></div><div class="skel-line"></div>
+  </div>
+</div>
+
+<div class="demo">
+  <p class="label">4. BRACKET REVEAL (panel entrance)</p>
+  <div class="bracket-reveal">
+    <span style="font-size:11px;color:var(--dim);letter-spacing:0.1em">DECRYPTING TRANSMISSION...</span>
+  </div>
+</div>
+
+<div class="demo">
+  <p class="label">5. HOLOGRAPHIC FLICKER (CRT loading)</p>
+  <div class="holo-flicker">
+    <span style="font-size:11px;color:var(--dim);letter-spacing:0.1em">ESTABLISHING SECURE CHANNEL...</span>
+  </div>
+</div>
+
+<div class="demo">
+  <p class="label">6. PERIMETER BORDER TRACE (animated outline)</p>
+  <div class="perim-trace">
+    <span style="font-size:11px;color:var(--dim);letter-spacing:0.1em">VERIFYING CREDENTIALS...</span>
+  </div>
+</div>
+
+<div class="demo">
+  <p class="label">7. DATA STREAM (live log loading)</p>
+  <div class="data-stream">
+    <div class="data-stream-inner">
+      <div class="stream-line">[<span class="hl">14:32:07</span>] AUTH.VERIFY — Token validated</div>
+      <div class="stream-line">[<span class="hl">14:32:07</span>] NET.SYNC — Establishing tunnel...</div>
+      <div class="stream-line">[<span class="hl">14:32:08</span>] MEM.LOAD — Reading 247 entries</div>
+      <div class="stream-line">[<span class="hl">14:32:08</span>] GPU.INIT — CUDA cores allocated</div>
+      <div class="stream-line">[<span class="hl">14:32:09</span>] MDL.LOAD — axe-command-oracle ready</div>
+      <div class="stream-line">[<span class="hl">14:32:09</span>] SYS.OK — All systems operational</div>
+      <div class="stream-line">[<span class="hl">14:32:07</span>] AUTH.VERIFY — Token validated</div>
+      <div class="stream-line">[<span class="hl">14:32:07</span>] NET.SYNC — Establishing tunnel...</div>
+      <div class="stream-line">[<span class="hl">14:32:08</span>] MEM.LOAD — Reading 247 entries</div>
+      <div class="stream-line">[<span class="hl">14:32:08</span>] GPU.INIT — CUDA cores allocated</div>
+      <div class="stream-line">[<span class="hl">14:32:09</span>] MDL.LOAD — axe-command-oracle ready</div>
+      <div class="stream-line">[<span class="hl">14:32:09</span>] SYS.OK — All systems operational</div>
+    </div>
+  </div>
+</div>
+
+<div class="demo">
+  <p class="label">8. TACTICAL MAP LOAD (geographic/spatial)</p>
+  <div class="tac-map">
+    <div class="tac-map-sweep"></div>
+    <div class="tac-map-crosshair"></div>
+    <div class="tac-dot" style="top:30%;left:25%"></div>
+    <div class="tac-dot" style="top:60%;left:70%;animation-delay:0.5s"></div>
+    <div class="tac-dot" style="top:45%;left:45%;animation-delay:1s;background:var(--a)"></div>
+  </div>
+</div>
+
+</body>
+</html>

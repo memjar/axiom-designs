@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM HUD — Panels & Cards</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --hud-bg: #050a0e;
+  --hud-cyan: #00e5ff;
+  --hud-amber: #ff9800;
+  --hud-red: #ff1744;
+  --hud-green: #00e676;
+  --hud-gold: #ffd740;
+  --hud-text: #c8dce8;
+  --hud-text-dim: #4a6a7a;
+  --hud-cyan-20: rgba(0,229,255,0.12);
+  --hud-cyan-40: rgba(0,229,255,0.25);
+  --hud-red-20: rgba(255,23,68,0.15);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--hud-bg);
+  color: var(--hud-text);
+  font-family: 'Share Tech Mono', monospace;
+  min-height: 100vh;
+  padding: 32px;
+  line-height: 1.6;
+}
+h1 {
+  color: var(--hud-cyan);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-bottom: 8px;
+  text-shadow: 0 0 12px rgba(0,229,255,0.5);
+}
+.subtitle {
+  color: var(--hud-text-dim);
+  font-size: 11px;
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+  text-transform: uppercase;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 32px;
+  margin-bottom: 48px;
+}
+.section-label {
+  color: var(--hud-text-dim);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  padding-left: 4px;
+}
+
+/* ── CORNER BRACKET PANEL ── */
+.hud-panel {
+  position: relative;
+  background: linear-gradient(180deg, rgba(0,229,255,0.04) 0%, rgba(0,229,255,0.01) 100%);
+  border: 1px solid rgba(0,229,255,0.15);
+  padding: 24px;
+  overflow: hidden;
+}
+.hud-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,229,255,0.015) 2px,
+    rgba(0,229,255,0.015) 4px
+  );
+  pointer-events: none;
+  animation: scanDrift 8s linear infinite;
+}
+@keyframes scanDrift {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(40px); }
+}
+/* Corner brackets via pseudo elements on inner wrapper */
+.hud-panel .corner-tl, .hud-panel .corner-tr,
+.hud-panel .corner-bl, .hud-panel .corner-br {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+.hud-panel .corner-tl { top: 0; left: 0; border-top: 2px solid var(--hud-cyan); border-left: 2px solid var(--hud-cyan); }
+.hud-panel .corner-tr { top: 0; right: 0; border-top: 2px solid var(--hud-cyan); border-right: 2px solid var(--hud-cyan); }
+.hud-panel .corner-bl { bottom: 0; left: 0; border-bottom: 2px solid var(--hud-cyan); border-left: 2px solid var(--hud-cyan); }
+.hud-panel .corner-br { bottom: 0; right: 0; border-bottom: 2px solid var(--hud-cyan); border-right: 2px solid var(--hud-cyan); }
+.hud-panel:hover {
+  border-color: rgba(0,229,255,0.35);
+  box-shadow: 0 0 30px rgba(0,229,255,0.08), inset 0 0 30px rgba(0,229,255,0.03);
+}
+.hud-panel:hover .corner-tl, .hud-panel:hover .corner-tr,
+.hud-panel:hover .corner-bl, .hud-panel:hover .corner-br {
+  filter: drop-shadow(0 0 4px var(--hud-cyan));
+}
+.panel-title {
+  color: var(--hud-cyan);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel-title::before {
+  content: '//';
+  color: var(--hud-text-dim);
+}
+.panel-body {
+  font-size: 12px;
+  color: var(--hud-text);
+  position: relative;
+  z-index: 1;
+}
+
+/* ── COLLAPSIBLE PANEL ── */
+.collapsible {
+  background: rgba(0,229,255,0.03);
+  border: 1px solid rgba(0,229,255,0.12);
+  margin-bottom: 2px;
+}
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+.collapsible-header:hover {
+  background: rgba(0,229,255,0.06);
+}
+.collapsible-header .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--hud-cyan);
+}
+.collapsible-header .chevron {
+  color: var(--hud-text-dim);
+  font-size: 10px;
+  transition: transform 0.3s ease;
+}
+.collapsible.open .chevron {
+  transform: rotate(90deg);
+}
+.collapsible-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), padding 0.3s;
+  padding: 0 16px;
+  font-size: 12px;
+}
+.collapsible.open .collapsible-body {
+  max-height: 300px;
+  padding: 0 16px 16px;
+}
+.collapsible-header .status-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  width: 0;
+  background: var(--hud-cyan);
+  transition: width 0.6s ease;
+}
+.collapsible.open .status-line,
+.collapsible-header:hover .status-line {
+  width: 100%;
+}
+
+/* ── DATA READOUT PANEL ── */
+.data-readout {
+  background: rgba(0,229,255,0.02);
+  border: 1px solid rgba(0,229,255,0.12);
+  padding: 20px;
+}
+.readout-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0,229,255,0.06);
+  font-size: 12px;
+}
+.readout-row:last-child { border-bottom: none; }
+.readout-key {
+  color: var(--hud-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 10px;
+}
+.readout-val {
+  color: var(--hud-cyan);
+  text-align: right;
+}
+.readout-val.warn { color: var(--hud-amber); }
+.readout-val.danger { color: var(--hud-red); }
+.readout-val.ok { color: var(--hud-green); }
+
+/* ── ALERT PANEL ── */
+.alert-panel {
+  background: var(--hud-red-20);
+  border: 1px solid var(--hud-red);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  animation: alertFlash 2s ease-in-out infinite;
+}
+@keyframes alertFlash {
+  0%, 100% { border-color: var(--hud-red); box-shadow: 0 0 10px rgba(255,23,68,0.15); }
+  50% { border-color: rgba(255,23,68,0.4); box-shadow: 0 0 25px rgba(255,23,68,0.25); }
+}
+.alert-panel .alert-icon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.alert-panel .alert-icon .tri {
+  width: 0; height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 14px solid var(--hud-red);
+  position: relative;
+}
+.alert-panel .alert-icon .tri::after {
+  content: '!';
+  position: absolute;
+  top: 3px;
+  left: -3px;
+  font-size: 8px;
+  font-weight: bold;
+  color: var(--hud-bg);
+}
+.alert-panel .alert-label {
+  color: var(--hud-red);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+.alert-panel .alert-body {
+  font-size: 12px;
+  color: var(--hud-text);
+}
+.alert-panel::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,23,68,0.06), transparent);
+  animation: alertSweep 3s linear infinite;
+}
+@keyframes alertSweep {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* ── STATUS PANEL ── */
+.status-panel {
+  background: rgba(0,229,255,0.02);
+  border: 1px solid rgba(0,229,255,0.12);
+  padding: 20px;
+}
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(0,229,255,0.05);
+}
+.status-row:last-child { border-bottom: none; }
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+.status-dot.green { background: var(--hud-green); box-shadow: 0 0 8px var(--hud-green); }
+.status-dot.amber { background: var(--hud-amber); box-shadow: 0 0 8px var(--hud-amber); }
+.status-dot.red { background: var(--hud-red); box-shadow: 0 0 8px var(--hud-red); }
+.status-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  opacity: 0;
+  animation: dotPulse 2s ease-out infinite;
+}
+.status-dot.green::after { border-color: var(--hud-green); }
+.status-dot.amber::after { border-color: var(--hud-amber); }
+.status-dot.red::after { border-color: var(--hud-red); }
+@keyframes dotPulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+.status-label { color: var(--hud-text-dim); text-transform: uppercase; font-size: 10px; letter-spacing: 1px; flex: 1; }
+.status-value { color: var(--hud-text); }
+
+/* ── INTEL CARD ── */
+.intel-card {
+  background: rgba(0,229,255,0.02);
+  border: 1px solid rgba(0,229,255,0.12);
+  overflow: hidden;
+}
+.intel-card .classification {
+  padding: 6px 16px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-align: center;
+}
+.intel-card .classification.top-secret {
+  background: var(--hud-red);
+  color: #fff;
+  animation: classFlash 1.5s ease-in-out infinite;
+}
+@keyframes classFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.intel-card .classification.confidential {
+  background: var(--hud-amber);
+  color: var(--hud-bg);
+}
+.intel-card .classification.unclassified {
+  background: var(--hud-green);
+  color: var(--hud-bg);
+}
+.intel-card .intel-body {
+  padding: 20px;
+  font-size: 12px;
+}
+.intel-card .intel-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,229,255,0.08);
+  font-size: 10px;
+  color: var(--hud-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ── METRIC CARD ── */
+.metric-card {
+  background: rgba(0,229,255,0.02);
+  border: 1px solid rgba(0,229,255,0.12);
+  padding: 20px;
+  text-align: center;
+}
+.metric-card .metric-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--hud-text-dim);
+  margin-bottom: 8px;
+}
+.metric-card .metric-value {
+  font-size: 42px;
+  color: var(--hud-cyan);
+  text-shadow: 0 0 20px rgba(0,229,255,0.4);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.metric-card .metric-unit {
+  font-size: 14px;
+  color: var(--hud-text-dim);
+}
+.sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 32px;
+  margin-top: 16px;
+  justify-content: center;
+}
+.sparkline .bar {
+  width: 4px;
+  background: var(--hud-cyan);
+  opacity: 0.5;
+  border-radius: 1px 1px 0 0;
+  animation: sparkGrow 1.5s ease-out forwards;
+  transform-origin: bottom;
+}
+@keyframes sparkGrow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+.sparkline .bar:last-child { opacity: 1; }
+
+/* ── NESTED PANEL ── */
+.nested-outer {
+  background: rgba(0,229,255,0.03);
+  border: 1px solid rgba(0,229,255,0.15);
+  padding: 20px;
+  position: relative;
+}
+.nested-outer .depth-indicator {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--hud-cyan);
+  opacity: 0.4;
+}
+.nested-inner {
+  background: rgba(0,229,255,0.04);
+  border: 1px solid rgba(0,229,255,0.1);
+  padding: 16px;
+  margin-top: 12px;
+  margin-left: 12px;
+  position: relative;
+}
+.nested-inner .depth-indicator {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--hud-amber);
+  opacity: 0.4;
+}
+.nested-inner .nested-deep {
+  background: rgba(0,229,255,0.05);
+  border: 1px solid rgba(0,229,255,0.08);
+  padding: 12px;
+  margin-top: 10px;
+  margin-left: 12px;
+  position: relative;
+}
+.nested-inner .nested-deep .depth-indicator {
+  background: var(--hud-gold);
+}
+.depth-label {
+  font-size: 9px;
+  color: var(--hud-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+</style>
+</head>
+<body>
+
+<h1>AXIOM Intelligence HUD</h1>
+<p class="subtitle">Component Library // Panels & Cards // v1.0</p>
+
+<!-- CORNER BRACKET PANEL -->
+<p class="section-label">01 // Corner Bracket Panel</p>
+<div class="grid">
+  <div class="hud-panel">
+    <span class="corner-tl"></span><span class="corner-tr"></span>
+    <span class="corner-bl"></span><span class="corner-br"></span>
+    <div class="panel-title">System Overview</div>
+    <div class="panel-body">
+      Primary tactical display with corner bracket framing and scan line overlay. All subsystems reporting nominal. Threat assessment matrix loaded and synchronized across all command nodes.
+    </div>
+  </div>
+  <div class="hud-panel">
+    <span class="corner-tl"></span><span class="corner-tr"></span>
+    <span class="corner-bl"></span><span class="corner-br"></span>
+    <div class="panel-title">Signal Intelligence</div>
+    <div class="panel-body">
+      SIGINT feed active across 14 bands. Encrypted channels decoded at 97.3% accuracy. Pattern recognition algorithms running in parallel. No anomalous transmissions detected in last 4 hours.
+    </div>
+  </div>
+</div>
+
+<!-- COLLAPSIBLE PANELS -->
+<p class="section-label">02 // Collapsible Panels</p>
+<div style="max-width:600px; margin-bottom:48px;">
+  <div class="collapsible open" onclick="this.classList.toggle('open')">
+    <div class="collapsible-header" style="position:relative">
+      <span class="label">Mission Parameters</span>
+      <span class="chevron">&#9654;</span>
+      <span class="status-line"></span>
+    </div>
+    <div class="collapsible-body">
+      Operational window: 0400-2200 UTC. Primary objective secured. Secondary objectives in progress. All field operatives reporting at scheduled intervals. Extraction timeline confirmed.
+    </div>
+  </div>
+  <div class="collapsible" onclick="this.classList.toggle('open')">
+    <div class="collapsible-header" style="position:relative">
+      <span class="label">Resource Allocation</span>
+      <span class="chevron">&#9654;</span>
+      <span class="status-line"></span>
+    </div>
+    <div class="collapsible-body">
+      Compute clusters at 73% utilization. Memory allocation within nominal bounds. Storage subsystem defragmentation scheduled for next maintenance window.
+    </div>
+  </div>
+  <div class="collapsible" onclick="this.classList.toggle('open')">
+    <div class="collapsible-header" style="position:relative">
+      <span class="label">Communications Log</span>
+      <span class="chevron">&#9654;</span>
+      <span class="status-line"></span>
+    </div>
+    <div class="collapsible-body">
+      Last transmission received 00:02:14 ago. Channel integrity verified. Backup frequencies standing by. Satellite uplink nominal.
+    </div>
+  </div>
+</div>
+
+<!-- DATA READOUT -->
+<p class="section-label">03 // Data Readout Panel</p>
+<div class="grid">
+  <div class="data-readout">
+    <div class="panel-title">Platform Telemetry</div>
+    <div class="readout-row"><span class="readout-key">CPU Load</span><span class="readout-val ok">23.4%</span></div>
+    <div class="readout-row"><span class="readout-key">Memory Usage</span><span class="readout-val">48.2 GB / 64 GB</span></div>
+    <div class="readout-row"><span class="readout-key">GPU Temp</span><span class="readout-val warn">74&deg;C</span></div>
+    <div class="readout-row"><span class="readout-key">Network I/O</span><span class="readout-val">1.2 Gbps</span></div>
+    <div class="readout-row"><span class="readout-key">Disk Latency</span><span class="readout-val ok">0.4 ms</span></div>
+    <div class="readout-row"><span class="readout-key">Error Rate</span><span class="readout-val danger">0.03%</span></div>
+    <div class="readout-row"><span class="readout-key">Uptime</span><span class="readout-val">47d 13h 22m</span></div>
+  </div>
+
+  <!-- ALERT PANEL -->
+  <div>
+    <p class="section-label" style="margin-bottom:16px">04 // Alert Panel</p>
+    <div class="alert-panel">
+      <div class="alert-icon">
+        <div class="tri"></div>
+        <span class="alert-label">Perimeter Breach Detected</span>
+      </div>
+      <div class="alert-body">
+        Unauthorized access attempt on Node 7 at 14:32:07 UTC. Source IP traced to external network. Countermeasures engaged. Awaiting operator confirmation to escalate.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS PANEL -->
+<p class="section-label">05 // Status Panel</p>
+<div class="grid">
+  <div class="status-panel">
+    <div class="panel-title">Subsystem Health</div>
+    <div class="status-row"><span class="status-dot green"></span><span class="status-label">Core Engine</span><span class="status-value">Operational</span></div>
+    <div class="status-row"><span class="status-dot green"></span><span class="status-label">Database Cluster</span><span class="status-value">Synchronized</span></div>
+    <div class="status-row"><span class="status-dot amber"></span><span class="status-label">Network Gateway</span><span class="status-value">Degraded</span></div>
+    <div class="status-row"><span class="status-dot green"></span><span class="status-label">Auth Service</span><span class="status-value">Active</span></div>
+    <div class="status-row"><span class="status-dot red"></span><span class="status-label">Backup Node</span><span class="status-value">Offline</span></div>
+    <div class="status-row"><span class="status-dot green"></span><span class="status-label">Message Queue</span><span class="status-value">Processing</span></div>
+  </div>
+
+  <!-- INTEL CARDS -->
+  <div>
+    <p class="section-label" style="margin-bottom:16px">06 // Intel Cards</p>
+    <div class="intel-card" style="margin-bottom:12px;">
+      <div class="classification top-secret">TOP SECRET // SI // NOFORN</div>
+      <div class="intel-body">
+        Project AXIOM deployment timeline accelerated. Phase 1 integration complete. Neural pathway calibration exceeds projected thresholds by 14%.
+        <div class="intel-meta">
+          <span>DTG: 09 MAR 2026 1430Z</span>
+          <span>REF: AX-2026-0412</span>
+        </div>
+      </div>
+    </div>
+    <div class="intel-card" style="margin-bottom:12px;">
+      <div class="classification confidential">CONFIDENTIAL</div>
+      <div class="intel-body">
+        Infrastructure audit complete. All endpoints verified. Certificate rotation scheduled for next cycle.
+        <div class="intel-meta">
+          <span>DTG: 09 MAR 2026 0900Z</span>
+          <span>REF: AX-2026-0411</span>
+        </div>
+      </div>
+    </div>
+    <div class="intel-card">
+      <div class="classification unclassified">UNCLASSIFIED // FOUO</div>
+      <div class="intel-body">
+        System documentation updated. Training materials distributed to all operators. Feedback cycle open until 15 MAR 2026.
+        <div class="intel-meta">
+          <span>DTG: 08 MAR 2026 1200Z</span>
+          <span>REF: AX-2026-0410</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- METRIC CARDS -->
+<p class="section-label">07 // Metric Cards</p>
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:16px; margin-bottom:48px;">
+  <div class="metric-card">
+    <div class="metric-label">Active Agents</div>
+    <div class="metric-value">14</div>
+    <div class="sparkline" id="spark1"></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Throughput</div>
+    <div class="metric-value">2.4<span class="metric-unit">K/s</span></div>
+    <div class="sparkline" id="spark2"></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Accuracy</div>
+    <div class="metric-value">97.3<span class="metric-unit">%</span></div>
+    <div class="sparkline" id="spark3"></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Latency</div>
+    <div class="metric-value">12<span class="metric-unit">ms</span></div>
+    <div class="sparkline" id="spark4"></div>
+  </div>
+</div>
+
+<!-- NESTED PANEL -->
+<p class="section-label">08 // Nested Panel</p>
+<div style="max-width:600px; margin-bottom:48px;">
+  <div class="nested-outer">
+    <div class="depth-indicator"></div>
+    <div class="depth-label">Depth 0 // Root</div>
+    <div class="panel-body" style="font-size:12px; margin-bottom:4px;">Command hierarchy — primary operations node</div>
+    <div class="nested-inner">
+      <div class="depth-indicator"></div>
+      <div class="depth-label">Depth 1 // Sector Alpha</div>
+      <div class="panel-body" style="font-size:12px; margin-bottom:4px;">Regional operations controller — 4 subordinate units</div>
+      <div class="nested-deep">
+        <div class="depth-indicator"></div>
+        <div class="depth-label">Depth 2 // Unit A-7</div>
+        <div class="panel-body" style="font-size:12px;">Field agent — status: active, last check-in 00:04:12 ago</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Generate sparkline bars
+function makeSparkline(id, count, maxH) {
+  const el = document.getElementById(id);
+  for (let i = 0; i < count; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    const h = Math.random() * maxH + 4;
+    bar.style.height = h + 'px';
+    bar.style.animationDelay = (i * 0.05) + 's';
+    el.appendChild(bar);
+  }
+}
+makeSparkline('spark1', 20, 28);
+makeSparkline('spark2', 20, 28);
+makeSparkline('spark3', 20, 28);
+makeSparkline('spark4', 20, 28);
+</script>
+</body>
+</html>

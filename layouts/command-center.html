@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM // COMMAND CENTER</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --hud-bg: #050a0e;
+  --hud-cyan: #00e5ff;
+  --hud-amber: #ff9800;
+  --hud-red: #ff1744;
+  --hud-green: #00e676;
+  --hud-gold: #ffd740;
+  --hud-text: #c8dce8;
+  --hud-text-dim: #4a6a7a;
+  --panel-bg: rgba(0,229,255,0.03);
+  --border: rgba(0,229,255,0.15);
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--hud-bg);
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--hud-text);
+  font-size: 12px;
+}
+
+/* Grid background */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Scanlines */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+}
+
+/* Main grid layout */
+.hud-layout {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: 200px 1fr 260px;
+  grid-template-rows: 40px 1fr 36px;
+  height: 100vh;
+  gap: 1px;
+}
+
+/* === TOP BAR === */
+.top-bar {
+  grid-column: 1 / -1;
+  background: rgba(0,229,255,0.04);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+}
+.top-bar .logo {
+  color: var(--hud-cyan);
+  font-size: 14px;
+  letter-spacing: 4px;
+  text-shadow: 0 0 20px rgba(0,229,255,0.4);
+}
+.top-bar .clock {
+  color: var(--hud-amber);
+  font-size: 13px;
+}
+.status-dots { display: flex; gap: 10px; align-items: center; }
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--hud-green);
+  box-shadow: 0 0 8px rgba(0,230,118,0.6);
+}
+.status-dot.warn { background: var(--hud-amber); box-shadow: 0 0 8px rgba(255,152,0,0.6); }
+.conn-indicator { color: var(--hud-green); font-size: 11px; }
+.conn-indicator::before { content: '\u25CF '; }
+
+/* === LEFT SIDEBAR === */
+.sidebar {
+  background: rgba(0,229,255,0.02);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 12px 0;
+}
+.nav-item {
+  padding: 10px 16px;
+  color: var(--hud-text-dim);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 10px;
+}
+.nav-item:hover { color: var(--hud-text); background: rgba(0,229,255,0.05); }
+.nav-item.active {
+  color: var(--hud-cyan);
+  border-left-color: var(--hud-cyan);
+  background: rgba(0,229,255,0.06);
+  text-shadow: 0 0 10px rgba(0,229,255,0.3);
+}
+.nav-icon { width: 16px; text-align: center; font-size: 14px; }
+
+/* Mini radar */
+.mini-radar {
+  margin-top: auto;
+  padding: 16px;
+  display: flex; justify-content: center;
+}
+.mini-radar svg { filter: drop-shadow(0 0 6px rgba(0,229,255,0.3)); }
+
+/* === CENTER MAIN === */
+.main-content {
+  position: relative;
+  padding: 20px;
+  display: flex; flex-direction: column;
+}
+
+/* Corner brackets */
+.bracket-frame {
+  position: relative;
+  flex: 1;
+  border: 1px solid transparent;
+}
+.bracket-frame::before, .bracket-frame::after,
+.bracket-frame .br-bl::before, .bracket-frame .br-br::before {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: var(--hud-cyan);
+  border-style: solid;
+}
+.bracket-frame::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.bracket-frame::after { top: 0; right: 0; border-width: 1px 1px 0 0; }
+.bracket-frame .br-bl::before { bottom: 0; left: 0; border-width: 0 0 1px 1px; top: auto; }
+.bracket-frame .br-br::before { bottom: 0; right: 0; border-width: 0 1px 1px 0; top: auto; left: auto; }
+
+.main-title {
+  color: var(--hud-cyan);
+  font-size: 11px;
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+  padding: 0 8px;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+  flex: 1;
+  padding: 8px;
+}
+.content-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  padding: 12px;
+  position: relative;
+}
+.content-card .card-title {
+  font-size: 10px;
+  color: var(--hud-text-dim);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+.content-card .card-value {
+  font-size: 28px;
+  color: var(--hud-cyan);
+  text-shadow: 0 0 20px rgba(0,229,255,0.3);
+}
+.content-card .card-sub {
+  font-size: 10px;
+  color: var(--hud-green);
+  margin-top: 4px;
+}
+
+/* Sparkline bar chart */
+.spark-bars { display: flex; align-items: flex-end; gap: 2px; height: 40px; margin-top: 8px; }
+.spark-bar {
+  flex: 1;
+  background: var(--hud-cyan);
+  opacity: 0.5;
+  min-height: 3px;
+  transition: height 0.3s;
+}
+
+/* === RIGHT PANEL === */
+.right-panel {
+  background: rgba(0,229,255,0.02);
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.right-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--hud-amber);
+  letter-spacing: 2px;
+}
+.intel-feed {
+  flex: 1; overflow: hidden;
+  padding: 8px;
+}
+.intel-item {
+  padding: 8px;
+  border-bottom: 1px solid rgba(0,229,255,0.06);
+  animation: feed-in 0.3s ease-out;
+}
+@keyframes feed-in { from { opacity: 0; transform: translateY(-10px); } }
+.intel-time { font-size: 9px; color: var(--hud-text-dim); }
+.intel-msg { font-size: 11px; color: var(--hud-text); margin-top: 2px; }
+.intel-tag {
+  display: inline-block;
+  font-size: 9px;
+  padding: 1px 6px;
+  margin-top: 4px;
+  border: 1px solid;
+}
+.intel-tag.high { color: var(--hud-red); border-color: var(--hud-red); }
+.intel-tag.med { color: var(--hud-amber); border-color: var(--hud-amber); }
+.intel-tag.low { color: var(--hud-green); border-color: var(--hud-green); }
+
+/* Data readout */
+.data-readout {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+}
+.readout-row {
+  display: flex; justify-content: space-between;
+  padding: 3px 0;
+  color: var(--hud-text-dim);
+}
+.readout-row .val { color: var(--hud-text); }
+
+/* === BOTTOM BAR === */
+.bottom-bar {
+  grid-column: 1 / -1;
+  background: rgba(0,229,255,0.04);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 16px;
+  overflow: hidden;
+  gap: 20px;
+}
+.ticker {
+  flex: 1;
+  white-space: nowrap;
+  color: var(--hud-text-dim);
+  font-size: 10px;
+  overflow: hidden;
+}
+.ticker-inner {
+  display: inline-block;
+  animation: scroll-ticker 40s linear infinite;
+}
+@keyframes scroll-ticker { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+.coords { color: var(--hud-amber); font-size: 10px; white-space: nowrap; }
+.sys-info { color: var(--hud-text-dim); font-size: 10px; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="hud-layout">
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="logo">AXIOM</div>
+    <div class="status-dots">
+      <div class="status-dot"></div>
+      <div class="status-dot"></div>
+      <div class="status-dot warn"></div>
+      <div class="status-dot"></div>
+      <span class="conn-indicator">UPLINK ACTIVE</span>
+    </div>
+    <div class="clock" id="clock">00:00:00 UTC</div>
+  </div>
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+    <div class="nav-item active"><span class="nav-icon">&diams;</span> OVERVIEW</div>
+    <div class="nav-item"><span class="nav-icon">&oplus;</span> OPERATIONS</div>
+    <div class="nav-item"><span class="nav-icon">&target;</span> TARGETING</div>
+    <div class="nav-item"><span class="nav-icon">&equiv;</span> INTEL</div>
+    <div class="nav-item"><span class="nav-icon">&para;</span> COMMS</div>
+    <div class="nav-item"><span class="nav-icon">&sect;</span> SYSTEMS</div>
+    <div class="nav-item"><span class="nav-icon">&clubs;</span> AGENTS</div>
+
+    <div class="mini-radar">
+      <svg width="120" height="120" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="55" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="1"/>
+        <circle cx="60" cy="60" r="37" fill="none" stroke="rgba(0,229,255,0.1)" stroke-width="1"/>
+        <circle cx="60" cy="60" r="18" fill="none" stroke="rgba(0,229,255,0.1)" stroke-width="1"/>
+        <line x1="60" y1="5" x2="60" y2="115" stroke="rgba(0,229,255,0.08)" stroke-width="1"/>
+        <line x1="5" y1="60" x2="115" y2="60" stroke="rgba(0,229,255,0.08)" stroke-width="1"/>
+        <line id="radar-sweep" x1="60" y1="60" x2="60" y2="5" stroke="var(--hud-cyan)" stroke-width="1" opacity="0.6"/>
+        <circle cx="45" cy="38" r="2" fill="var(--hud-green)" opacity="0.8"/>
+        <circle cx="78" cy="52" r="2" fill="var(--hud-amber)" opacity="0.8"/>
+        <circle cx="55" cy="75" r="2" fill="var(--hud-green)" opacity="0.8"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="main-content">
+    <div class="main-title">// OPERATIONAL OVERVIEW</div>
+    <div class="bracket-frame">
+      <span class="br-bl"></span><span class="br-br"></span>
+      <div class="content-grid">
+        <div class="content-card">
+          <div class="card-title">ACTIVE AGENTS</div>
+          <div class="card-value">7</div>
+          <div class="card-sub">+2 STANDBY</div>
+          <div class="spark-bars" id="spark1"></div>
+        </div>
+        <div class="content-card">
+          <div class="card-title">UPTIME</div>
+          <div class="card-value" id="uptime">99.97%</div>
+          <div class="card-sub">LAST INCIDENT: 47h AGO</div>
+          <div class="spark-bars" id="spark2"></div>
+        </div>
+        <div class="content-card">
+          <div class="card-title">THROUGHPUT</div>
+          <div class="card-value" id="throughput">1.42 GB/s</div>
+          <div class="card-sub">NEURAL PIPELINE</div>
+          <div class="spark-bars" id="spark3"></div>
+        </div>
+        <div class="content-card">
+          <div class="card-title">THREAT LEVEL</div>
+          <div class="card-value" style="color: var(--hud-green);">LOW</div>
+          <div class="card-sub">DEFCON 5</div>
+          <div class="spark-bars" id="spark4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="right-header">// INTEL FEED</div>
+    <div class="intel-feed" id="intel-feed"></div>
+    <div class="data-readout">
+      <div class="readout-row"><span>CPU LOAD</span><span class="val" id="cpu">34%</span></div>
+      <div class="readout-row"><span>GPU UTIL</span><span class="val" id="gpu">67%</span></div>
+      <div class="readout-row"><span>MEMORY</span><span class="val" id="mem">48.2 GB</span></div>
+      <div class="readout-row"><span>VRAM</span><span class="val">22.1 GB</span></div>
+      <div class="readout-row"><span>NETWORK</span><span class="val" style="color:var(--hud-green);">NOMINAL</span></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <div class="coords" id="coords">37.7749&deg;N 122.4194&deg;W</div>
+    <div class="ticker">
+      <span class="ticker-inner">AXIOM v4.2.1 &bull; NEURAL ENGINE ONLINE &bull; MODEL: AXE-COMMAND-ORACLE [27B] &bull; QUEUE: 0 &bull; LATENCY: 12ms &bull; LAST SYNC: 3s AGO &bull; SECTORS CLEAR: 24/24 &bull; ENCRYPTED CHANNEL ACTIVE &bull; MEMORY SUBSYSTEM: 99.97% &bull; THREAT MATRIX: NOMINAL &bull;</span>
+    </div>
+    <div class="sys-info">SYS: NOMINAL</div>
+  </div>
+</div>
+
+<script>
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toISOString().slice(11, 19) + ' UTC';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Radar sweep
+let angle = 0;
+function animateRadar() {
+  angle = (angle + 1.5) % 360;
+  const rad = angle * Math.PI / 180;
+  const x = 60 + 55 * Math.sin(rad);
+  const y = 60 - 55 * Math.cos(rad);
+  document.getElementById('radar-sweep').setAttribute('x2', x);
+  document.getElementById('radar-sweep').setAttribute('y2', y);
+  requestAnimationFrame(animateRadar);
+}
+animateRadar();
+
+// Sparklines
+function initSpark(id, count) {
+  const el = document.getElementById(id);
+  for (let i = 0; i < count; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'spark-bar';
+    bar.style.height = (Math.random() * 35 + 5) + 'px';
+    el.appendChild(bar);
+  }
+}
+['spark1','spark2','spark3','spark4'].forEach(id => initSpark(id, 20));
+
+setInterval(() => {
+  document.querySelectorAll('.spark-bar').forEach(b => {
+    b.style.height = (Math.random() * 35 + 5) + 'px';
+  });
+}, 2000);
+
+// Intel feed
+const intelMessages = [
+  { msg: 'Perimeter scan complete. No anomalies detected.', tag: 'low' },
+  { msg: 'Agent FORGE reporting from sector 7-G.', tag: 'low' },
+  { msg: 'Encrypted comm intercept - decrypting...', tag: 'med' },
+  { msg: 'Memory sync cycle completed. Delta: 0.3ms.', tag: 'low' },
+  { msg: 'Unusual traffic pattern on node ECHO-9.', tag: 'med' },
+  { msg: 'Model hot-swap queued: 27B -> 72B.', tag: 'low' },
+  { msg: 'Threat signature match on boundary scan.', tag: 'high' },
+  { msg: 'Agent CORTANA: infrastructure audit passed.', tag: 'low' },
+  { msg: 'Satellite window in 12 minutes.', tag: 'med' },
+];
+const feed = document.getElementById('intel-feed');
+let intelIdx = 0;
+
+function addIntel() {
+  const item = intelMessages[intelIdx % intelMessages.length];
+  intelIdx++;
+  const now = new Date().toISOString().slice(11, 19);
+  const div = document.createElement('div');
+  div.className = 'intel-item';
+  div.innerHTML = `<div class="intel-time">${now}</div><div class="intel-msg">${item.msg}</div><div class="intel-tag ${item.tag}">${item.tag.toUpperCase()}</div>`;
+  feed.insertBefore(div, feed.firstChild);
+  if (feed.children.length > 15) feed.removeChild(feed.lastChild);
+}
+addIntel(); addIntel(); addIntel();
+setInterval(addIntel, 5000);
+
+// Fluctuating readouts
+setInterval(() => {
+  document.getElementById('cpu').textContent = (30 + Math.random() * 15).toFixed(0) + '%';
+  document.getElementById('gpu').textContent = (60 + Math.random() * 20).toFixed(0) + '%';
+  document.getElementById('mem').textContent = (46 + Math.random() * 4).toFixed(1) + ' GB';
+  document.getElementById('throughput').textContent = (1.2 + Math.random() * 0.5).toFixed(2) + ' GB/s';
+}, 3000);
+</script>
+</body>
+</html>

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM // THREAT ASSESSMENT</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --hud-bg: #050a0e;
+  --hud-cyan: #00e5ff;
+  --hud-amber: #ff9800;
+  --hud-red: #ff1744;
+  --hud-green: #00e676;
+  --hud-gold: #ffd740;
+  --hud-text: #c8dce8;
+  --hud-text-dim: #4a6a7a;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--hud-bg);
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--hud-text);
+  font-size: 12px;
+}
+
+/* Scanlines */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
+}
+
+/* Red alert border pulse */
+.alert-border {
+  position: fixed; inset: 0; pointer-events: none; z-index: 100;
+  border: 2px solid transparent;
+  animation: alert-pulse 3s ease-in-out infinite;
+}
+@keyframes alert-pulse {
+  0%, 100% { border-color: transparent; box-shadow: none; }
+  50% { border-color: rgba(255,23,68,0.4); box-shadow: inset 0 0 60px rgba(255,23,68,0.05); }
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 280px;
+  grid-template-rows: 40px 1fr 1fr 36px;
+  height: 100vh;
+  gap: 1px;
+}
+
+/* Top bar */
+.top-bar {
+  grid-column: 1 / -1;
+  background: rgba(0,229,255,0.04);
+  border-bottom: 1px solid rgba(0,229,255,0.15);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+}
+.top-bar .title { color: var(--hud-red); letter-spacing: 4px; font-size: 13px; text-shadow: 0 0 20px rgba(255,23,68,0.3); }
+.top-bar .clock { color: var(--hud-amber); }
+.defcon-badge {
+  background: rgba(0,230,118,0.1);
+  border: 1px solid var(--hud-green);
+  color: var(--hud-green);
+  padding: 2px 12px;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.defcon-badge.elevated { background: rgba(255,152,0,0.1); border-color: var(--hud-amber); color: var(--hud-amber); }
+.defcon-badge.critical { background: rgba(255,23,68,0.1); border-color: var(--hud-red); color: var(--hud-red); }
+
+/* Radar panel (center, spans 2 rows) */
+.radar-panel {
+  grid-column: 2;
+  grid-row: 2 / 4;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.radar-label {
+  position: absolute;
+  top: 12px; left: 16px;
+  font-size: 10px; color: var(--hud-text-dim); letter-spacing: 2px;
+}
+
+/* Alert feed (left, top) */
+.alert-feed-panel {
+  grid-column: 1;
+  grid-row: 2 / 4;
+  background: rgba(0,229,255,0.02);
+  border-right: 1px solid rgba(0,229,255,0.1);
+  display: flex; flex-direction: column;
+}
+.panel-header {
+  padding: 10px 14px;
+  font-size: 10px; letter-spacing: 2px;
+  border-bottom: 1px solid rgba(0,229,255,0.1);
+}
+.alert-list { flex: 1; overflow-y: auto; padding: 4px; }
+.alert-item {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(0,229,255,0.04);
+  border-left: 2px solid;
+  margin-bottom: 2px;
+}
+.alert-item.critical { border-left-color: var(--hud-red); }
+.alert-item.warning { border-left-color: var(--hud-amber); }
+.alert-item.info { border-left-color: var(--hud-cyan); }
+.alert-item.clear { border-left-color: var(--hud-green); }
+.alert-time { font-size: 9px; color: var(--hud-text-dim); }
+.alert-msg { font-size: 11px; margin-top: 2px; }
+.alert-src { font-size: 9px; color: var(--hud-text-dim); margin-top: 2px; }
+
+/* Right quadrants */
+.quad-panels {
+  grid-column: 3;
+  grid-row: 2 / 4;
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr 1fr;
+  gap: 1px;
+  border-left: 1px solid rgba(0,229,255,0.1);
+}
+.quad {
+  background: rgba(0,229,255,0.02);
+  padding: 10px 14px;
+  display: flex; flex-direction: column;
+}
+.quad-title { font-size: 9px; color: var(--hud-text-dim); letter-spacing: 2px; margin-bottom: 6px; }
+.quad-value { font-size: 22px; color: var(--hud-cyan); text-shadow: 0 0 15px rgba(0,229,255,0.2); }
+.quad-sub { font-size: 9px; color: var(--hud-text-dim); margin-top: 4px; }
+
+/* Threat gauge */
+.threat-gauge {
+  display: flex; gap: 3px; margin-top: 8px; align-items: flex-end; height: 30px;
+}
+.tg-bar {
+  flex: 1; background: var(--hud-green); min-height: 4px; border-radius: 1px;
+  transition: height 0.5s, background 0.5s;
+}
+
+/* Mini bar chart */
+.mini-chart { display: flex; gap: 2px; align-items: flex-end; height: 35px; margin-top: auto; }
+.mc-bar { flex: 1; background: var(--hud-cyan); opacity: 0.4; min-height: 2px; }
+
+/* DEFCON gauge */
+.defcon-strip { display: flex; gap: 4px; margin-top: 8px; }
+.defcon-level {
+  flex: 1; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  border: 1px solid;
+  opacity: 0.3;
+}
+.defcon-level.active { opacity: 1; }
+.dl-1 { border-color: var(--hud-red); color: var(--hud-red); }
+.dl-1.active { background: rgba(255,23,68,0.2); }
+.dl-2 { border-color: var(--hud-red); color: var(--hud-red); }
+.dl-3 { border-color: var(--hud-amber); color: var(--hud-amber); }
+.dl-4 { border-color: var(--hud-gold); color: var(--hud-gold); }
+.dl-5 { border-color: var(--hud-green); color: var(--hud-green); }
+.dl-5.active { background: rgba(0,230,118,0.15); }
+
+/* Status metrics bottom */
+.bottom-bar {
+  grid-column: 1 / -1;
+  background: rgba(0,229,255,0.04);
+  border-top: 1px solid rgba(0,229,255,0.15);
+  display: flex; align-items: center; padding: 0 16px;
+  gap: 24px; font-size: 10px; color: var(--hud-text-dim);
+}
+.metric { display: flex; gap: 6px; }
+.metric .v { color: var(--hud-cyan); }
+.metric .v.warn { color: var(--hud-amber); }
+.metric .v.ok { color: var(--hud-green); }
+</style>
+</head>
+<body>
+<div class="alert-border"></div>
+
+<div class="layout">
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="title">THREAT ASSESSMENT</div>
+    <div class="defcon-badge" id="defcon-badge">DEFCON 5</div>
+    <div class="clock" id="clock">00:00:00 UTC</div>
+  </div>
+
+  <!-- Alert feed (left) -->
+  <div class="alert-feed-panel">
+    <div class="panel-header" style="color:var(--hud-amber);">// ALERT FEED</div>
+    <div class="alert-list" id="alert-list"></div>
+  </div>
+
+  <!-- Radar (center) -->
+  <div class="radar-panel">
+    <div class="radar-label">// PRIMARY RADAR</div>
+    <svg width="380" height="380" viewBox="0 0 380 380" id="radar-svg">
+      <!-- Radar rings -->
+      <circle cx="190" cy="190" r="175" fill="none" stroke="rgba(0,229,255,0.1)" stroke-width="1"/>
+      <circle cx="190" cy="190" r="130" fill="none" stroke="rgba(0,229,255,0.08)" stroke-width="1"/>
+      <circle cx="190" cy="190" r="85" fill="none" stroke="rgba(0,229,255,0.08)" stroke-width="1"/>
+      <circle cx="190" cy="190" r="40" fill="none" stroke="rgba(0,229,255,0.08)" stroke-width="1"/>
+
+      <!-- Cross lines -->
+      <line x1="190" y1="15" x2="190" y2="365" stroke="rgba(0,229,255,0.06)" stroke-width="1"/>
+      <line x1="15" y1="190" x2="365" y2="190" stroke="rgba(0,229,255,0.06)" stroke-width="1"/>
+      <line x1="57" y1="57" x2="323" y2="323" stroke="rgba(0,229,255,0.04)" stroke-width="1"/>
+      <line x1="323" y1="57" x2="57" y2="323" stroke="rgba(0,229,255,0.04)" stroke-width="1"/>
+
+      <!-- Cardinal labels -->
+      <text x="190" y="12" fill="rgba(0,229,255,0.4)" font-size="10" text-anchor="middle" font-family="Share Tech Mono">N</text>
+      <text x="190" y="378" fill="rgba(0,229,255,0.4)" font-size="10" text-anchor="middle" font-family="Share Tech Mono">S</text>
+      <text x="6" y="194" fill="rgba(0,229,255,0.4)" font-size="10" font-family="Share Tech Mono">W</text>
+      <text x="370" y="194" fill="rgba(0,229,255,0.4)" font-size="10" font-family="Share Tech Mono">E</text>
+
+      <!-- Sweep -->
+      <line id="sweep" x1="190" y1="190" x2="190" y2="15" stroke="var(--hud-cyan)" stroke-width="1.5" opacity="0.6"/>
+
+      <!-- Sweep gradient trail -->
+      <defs>
+        <linearGradient id="sweepGrad" gradientTransform="rotate(90)">
+          <stop offset="0%" stop-color="rgba(0,229,255,0.15)"/>
+          <stop offset="100%" stop-color="rgba(0,229,255,0)"/>
+        </linearGradient>
+      </defs>
+      <path id="sweep-trail" d="" fill="url(#sweepGrad)" opacity="0.3"/>
+
+      <!-- Blips (added by JS) -->
+      <g id="blips"></g>
+
+      <!-- Center dot -->
+      <circle cx="190" cy="190" r="3" fill="var(--hud-cyan)" opacity="0.8"/>
+    </svg>
+  </div>
+
+  <!-- Right quadrants -->
+  <div class="quad-panels">
+    <div class="quad">
+      <div class="quad-title">THREAT LEVEL</div>
+      <div class="defcon-strip">
+        <div class="defcon-level dl-1">1</div>
+        <div class="defcon-level dl-2">2</div>
+        <div class="defcon-level dl-3">3</div>
+        <div class="defcon-level dl-4">4</div>
+        <div class="defcon-level dl-5 active">5</div>
+      </div>
+      <div class="threat-gauge" id="threat-gauge"></div>
+    </div>
+    <div class="quad">
+      <div class="quad-title">ACTIVE THREATS</div>
+      <div class="quad-value" id="threat-count">3</div>
+      <div class="quad-sub">TRACKED: 12 // NEUTRALIZED: 9</div>
+      <div class="mini-chart" id="mc1"></div>
+    </div>
+    <div class="quad">
+      <div class="quad-title">PERIMETER STATUS</div>
+      <div class="quad-value" style="color:var(--hud-green);font-size:18px;">SECURE</div>
+      <div class="quad-sub">LAST BREACH ATTEMPT: 4h 12m AGO</div>
+      <div class="mini-chart" id="mc2"></div>
+    </div>
+    <div class="quad">
+      <div class="quad-title">RESPONSE TIME</div>
+      <div class="quad-value" id="resp-time">12ms</div>
+      <div class="quad-sub">AVG: 14ms // P99: 28ms</div>
+      <div class="mini-chart" id="mc3"></div>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <div class="metric">SCAN RATE: <span class="v">1.2K/s</span></div>
+    <div class="metric">SIGNATURES: <span class="v">47,291</span></div>
+    <div class="metric">FALSE POS: <span class="v ok">0.02%</span></div>
+    <div class="metric">FIREWALL: <span class="v ok">ACTIVE</span></div>
+    <div class="metric">IDS: <span class="v ok">NOMINAL</span></div>
+    <div class="metric">ENCRYPTION: <span class="v">AES-256</span></div>
+    <span id="clock2" style="margin-left:auto;color:var(--hud-amber);"></span>
+  </div>
+</div>
+
+<script>
+// Clock
+function updateClock() {
+  const t = new Date().toISOString().slice(11,19) + ' UTC';
+  document.getElementById('clock').textContent = t;
+  document.getElementById('clock2').textContent = t;
+}
+setInterval(updateClock, 1000); updateClock();
+
+// Radar sweep
+let sweepAngle = 0;
+const sweep = document.getElementById('sweep');
+const blipsG = document.getElementById('blips');
+
+// Blips data
+const blips = [
+  { angle: 45, dist: 0.6, type: 'hostile' },
+  { angle: 120, dist: 0.4, type: 'friendly' },
+  { angle: 200, dist: 0.75, type: 'unknown' },
+  { angle: 280, dist: 0.3, type: 'friendly' },
+  { angle: 340, dist: 0.85, type: 'hostile' },
+  { angle: 90, dist: 0.5, type: 'friendly' },
+  { angle: 160, dist: 0.65, type: 'hostile' },
+];
+
+// Create blip elements
+blips.forEach((b, i) => {
+  const rad = b.angle * Math.PI / 180;
+  const r = b.dist * 175;
+  const x = 190 + r * Math.sin(rad);
+  const y = 190 - r * Math.cos(rad);
+  const color = b.type === 'hostile' ? 'var(--hud-red)' : b.type === 'friendly' ? 'var(--hud-green)' : 'var(--hud-amber)';
+
+  const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  c.setAttribute('cx', x); c.setAttribute('cy', y);
+  c.setAttribute('r', b.type === 'hostile' ? 4 : 3);
+  c.setAttribute('fill', color);
+  c.setAttribute('opacity', '0.8');
+  c.id = 'blip-' + i;
+  blipsG.appendChild(c);
+
+  // Pulse ring for hostile
+  if (b.type === 'hostile') {
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    p.setAttribute('cx', x); p.setAttribute('cy', y);
+    p.setAttribute('r', 4); p.setAttribute('fill', 'none');
+    p.setAttribute('stroke', color); p.setAttribute('stroke-width', '1');
+    const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+    anim.setAttribute('attributeName', 'r'); anim.setAttribute('from', '4'); anim.setAttribute('to', '14');
+    anim.setAttribute('dur', '1.5s'); anim.setAttribute('repeatCount', 'indefinite');
+    const anim2 = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+    anim2.setAttribute('attributeName', 'opacity'); anim2.setAttribute('from', '0.6'); anim2.setAttribute('to', '0');
+    anim2.setAttribute('dur', '1.5s'); anim2.setAttribute('repeatCount', 'indefinite');
+    p.appendChild(anim); p.appendChild(anim2);
+    blipsG.appendChild(p);
+  }
+});
+
+function animateRadar() {
+  sweepAngle = (sweepAngle + 1.2) % 360;
+  const rad = sweepAngle * Math.PI / 180;
+  const x = 190 + 175 * Math.sin(rad);
+  const y = 190 - 175 * Math.cos(rad);
+  sweep.setAttribute('x2', x);
+  sweep.setAttribute('y2', y);
+
+  // Blip visibility (fade after sweep passes)
+  blips.forEach((b, i) => {
+    let diff = sweepAngle - b.angle;
+    if (diff < 0) diff += 360;
+    const opacity = diff < 30 ? 0.9 : Math.max(0.15, 0.9 - (diff - 30) / 300);
+    document.getElementById('blip-' + i).setAttribute('opacity', opacity);
+  });
+
+  requestAnimationFrame(animateRadar);
+}
+animateRadar();
+
+// Threat gauge bars
+const tg = document.getElementById('threat-gauge');
+for (let i = 0; i < 20; i++) {
+  const bar = document.createElement('div');
+  bar.className = 'tg-bar';
+  const h = Math.max(4, (i / 20) * 30);
+  bar.style.height = h + 'px';
+  bar.style.background = i < 14 ? 'var(--hud-green)' : i < 17 ? 'var(--hud-amber)' : 'var(--hud-red)';
+  bar.style.opacity = i < 6 ? '0.8' : '0.3';
+  tg.appendChild(bar);
+}
+
+// Mini charts
+function initMiniChart(id, count) {
+  const el = document.getElementById(id);
+  for (let i = 0; i < count; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'mc-bar';
+    bar.style.height = (Math.random() * 30 + 5) + 'px';
+    el.appendChild(bar);
+  }
+}
+initMiniChart('mc1', 24);
+initMiniChart('mc2', 24);
+initMiniChart('mc3', 24);
+
+setInterval(() => {
+  document.querySelectorAll('.mc-bar').forEach(b => {
+    b.style.height = (Math.random() * 30 + 5) + 'px';
+  });
+  document.getElementById('resp-time').textContent = (10 + Math.random() * 8).toFixed(0) + 'ms';
+  document.getElementById('threat-count').textContent = (2 + Math.floor(Math.random() * 3));
+}, 3000);
+
+// Alert feed
+const alertMsgs = [
+  { msg: 'Port scan detected from 192.168.4.77', level: 'warning', src: 'IDS-NORTH' },
+  { msg: 'Signature match: CVE-2026-1142', level: 'critical', src: 'FIREWALL' },
+  { msg: 'Brute force attempt blocked (SSH)', level: 'warning', src: 'AUTH-GUARD' },
+  { msg: 'Perimeter sweep complete - all clear', level: 'clear', src: 'PATROL-7' },
+  { msg: 'Anomalous traffic pattern sector 4', level: 'warning', src: 'NET-MON' },
+  { msg: 'TLS certificate renewal in 48h', level: 'info', src: 'CERT-MGR' },
+  { msg: 'DDoS mitigation engaged - low severity', level: 'critical', src: 'SHIELD' },
+  { msg: 'Agent heartbeat restored: ECHO-9', level: 'clear', src: 'WATCHDOG' },
+  { msg: 'Unauthorized API key usage attempt', level: 'critical', src: 'API-GW' },
+  { msg: 'Geo-fence boundary test passed', level: 'info', src: 'GEO-LOCK' },
+];
+const alertList = document.getElementById('alert-list');
+let alertIdx = 0;
+
+function addAlert() {
+  const a = alertMsgs[alertIdx % alertMsgs.length];
+  alertIdx++;
+  const now = new Date().toISOString().slice(11, 19);
+  const div = document.createElement('div');
+  div.className = 'alert-item ' + a.level;
+  div.innerHTML = `<div class="alert-time">${now}</div><div class="alert-msg">${a.msg}</div><div class="alert-src">${a.src}</div>`;
+  alertList.insertBefore(div, alertList.firstChild);
+  if (alertList.children.length > 30) alertList.removeChild(alertList.lastChild);
+}
+for (let i = 0; i < 6; i++) addAlert();
+setInterval(addAlert, 4000);
+</script>
+</body>
+</html>

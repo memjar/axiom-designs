@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM HUD — Data Displays</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --hud-bg: #050a0e;
+  --hud-cyan: #00e5ff;
+  --hud-amber: #ff9800;
+  --hud-red: #ff1744;
+  --hud-green: #00e676;
+  --hud-gold: #ffd740;
+  --hud-text: #c8dce8;
+  --hud-text-dim: #4a6a7a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--hud-bg);
+  color: var(--hud-text);
+  font-family: 'Share Tech Mono', monospace;
+  padding: 32px;
+  line-height: 1.6;
+}
+h1 { color: var(--hud-cyan); font-size: 14px; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px; text-shadow: 0 0 12px rgba(0,229,255,0.5); }
+.subtitle { color: var(--hud-text-dim); font-size: 11px; letter-spacing: 2px; margin-bottom: 40px; text-transform: uppercase; }
+.section-label { color: var(--hud-text-dim); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px; }
+.mb48 { margin-bottom: 48px; }
+
+/* ── SCROLLING TICKER ── */
+.ticker-wrap {
+  overflow: hidden;
+  border: 1px solid rgba(0,229,255,0.12);
+  background: rgba(0,229,255,0.02);
+  height: 36px;
+  position: relative;
+}
+.ticker-wrap::before, .ticker-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 40px;
+  z-index: 2;
+  pointer-events: none;
+}
+.ticker-wrap::before { left: 0; background: linear-gradient(90deg, var(--hud-bg), transparent); }
+.ticker-wrap::after { right: 0; background: linear-gradient(270deg, var(--hud-bg), transparent); }
+.ticker-track {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  white-space: nowrap;
+  animation: tickerScroll 30s linear infinite;
+}
+@keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  font-size: 11px;
+  color: var(--hud-text);
+  letter-spacing: 1px;
+}
+.ticker-item .dot { width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; }
+.ticker-item .dot.g { background: var(--hud-green); box-shadow: 0 0 4px var(--hud-green); }
+.ticker-item .dot.a { background: var(--hud-amber); box-shadow: 0 0 4px var(--hud-amber); }
+.ticker-item .dot.r { background: var(--hud-red); box-shadow: 0 0 4px var(--hud-red); }
+
+/* ── LIVE TIMESTAMP ── */
+.timestamp-display {
+  display: flex;
+  gap: 32px;
+  padding: 16px 20px;
+  border: 1px solid rgba(0,229,255,0.12);
+  background: rgba(0,229,255,0.02);
+}
+.ts-block {}
+.ts-label { font-size: 9px; color: var(--hud-text-dim); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+.ts-value { font-size: 20px; color: var(--hud-cyan); text-shadow: 0 0 10px rgba(0,229,255,0.3); letter-spacing: 2px; }
+.ts-date { font-size: 11px; color: var(--hud-text-dim); margin-top: 2px; }
+
+/* ── COORDINATE DISPLAY ── */
+.coord-display {
+  padding: 16px 20px;
+  border: 1px solid rgba(0,229,255,0.12);
+  background: rgba(0,229,255,0.02);
+}
+.coord-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.coord-prefix { font-size: 10px; color: var(--hud-text-dim); text-transform: uppercase; width: 28px; }
+.coord-deg { font-size: 18px; color: var(--hud-cyan); }
+.coord-sym { font-size: 12px; color: var(--hud-text-dim); }
+.coord-dir { font-size: 12px; color: var(--hud-amber); margin-left: 4px; }
+
+/* ── HEX DUMP ── */
+.hex-dump {
+  border: 1px solid rgba(0,229,255,0.12);
+  background: rgba(0,229,255,0.02);
+  padding: 16px;
+  overflow-x: auto;
+}
+.hex-row {
+  display: flex;
+  gap: 0;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.hex-addr { color: var(--hud-text-dim); width: 80px; flex-shrink: 0; }
+.hex-bytes { color: var(--hud-cyan); flex: 1; letter-spacing: 1px; }
+.hex-bytes .hl { color: var(--hud-amber); }
+.hex-ascii { color: var(--hud-text-dim); margin-left: 16px; width: 130px; flex-shrink: 0; }
+.hex-ascii .printable { color: var(--hud-green); }
+
+/* ── LOG VIEWER ── */
+.log-viewer {
+  border: 1px solid rgba(0,229,255,0.12);
+  background: rgba(0,229,255,0.02);
+  padding: 16px;
+  max-height: 280px;
+  overflow-y: auto;
+  font-size: 11px;
+}
+.log-viewer::-webkit-scrollbar { width: 4px; }
+.log-viewer::-webkit-scrollbar-track { background: rgba(0,229,255,0.02); }
+.log-viewer::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.2); border-radius: 2px; }
+.log-line { display: flex; gap: 12px; padding: 2px 0; border-bottom: 1px solid rgba(0,229,255,0.03); }
+.log-ts { color: var(--hud-text-dim); white-space: nowrap; }
+.log-level { width: 52px; text-align: center; font-size: 10px; padding: 1px 0; flex-shrink: 0; }
+.log-level.info { color: var(--hud-cyan); border: 1px solid rgba(0,229,255,0.3); }
+.log-level.warn { color: var(--hud-amber); border: 1px solid rgba(255,152,0,0.3); }
+.log-level.error { color: var(--hud-red); border: 1px solid rgba(255,23,68,0.3); background: rgba(255,23,68,0.08); }
+.log-level.debug { color: var(--hud-text-dim); border: 1px solid rgba(74,106,122,0.3); }
+.log-level.fatal { color: #fff; background: var(--hud-red); border: 1px solid var(--hud-red); animation: fatalBlink 1s step-end infinite; }
+@keyframes fatalBlink { 50% { opacity: 0.5; } }
+.log-msg { color: var(--hud-text); flex: 1; }
+
+/* ── HUD TABLE ── */
+.hud-table-wrap {
+  border: 1px solid rgba(0,229,255,0.12);
+  overflow: hidden;
+}
+.hud-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.hud-table thead th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--hud-cyan);
+  background: rgba(0,229,255,0.06);
+  border-bottom: 1px solid rgba(0,229,255,0.2);
+  position: relative;
+  overflow: hidden;
+}
+.hud-table thead th::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--hud-cyan), transparent);
+  animation: scanHeader 4s linear infinite;
+}
+@keyframes scanHeader {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.hud-table tbody td {
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(0,229,255,0.05);
+  color: var(--hud-text);
+}
+.hud-table tbody tr:hover {
+  background: rgba(0,229,255,0.04);
+}
+.hud-table tbody tr:hover td {
+  color: var(--hud-cyan);
+}
+
+/* ── TREE VIEW ── */
+.tree-view {
+  border: 1px solid rgba(0,229,255,0.12);
+  background: rgba(0,229,255,0.02);
+  padding: 20px;
+  font-size: 12px;
+}
+.tree-node {
+  padding: 4px 0;
+}
+.tree-node .node-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 2px;
+}
+.tree-node .node-content:hover {
+  background: rgba(0,229,255,0.06);
+}
+.tree-children {
+  margin-left: 20px;
+  border-left: 1px solid rgba(0,229,255,0.1);
+  padding-left: 12px;
+}
+.tree-icon { color: var(--hud-cyan); font-size: 10px; width: 12px; text-align: center; }
+.tree-label { color: var(--hud-text); }
+.tree-rank { font-size: 9px; color: var(--hud-text-dim); text-transform: uppercase; letter-spacing: 1px; margin-left: auto; }
+.tree-node.level-0 > .node-content .tree-label { color: var(--hud-gold); }
+.tree-node.level-1 > .node-content .tree-label { color: var(--hud-cyan); }
+
+/* ── TAGS / BADGES ── */
+.tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.tag {
+  padding: 4px 12px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border: 1px solid;
+  position: relative;
+  overflow: hidden;
+}
+.tag::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+}
+.tag.command { color: var(--hud-gold); border-color: var(--hud-gold); }
+.tag.command::before { background: var(--hud-gold); }
+.tag.tactical { color: var(--hud-cyan); border-color: var(--hud-cyan); }
+.tag.tactical::before { background: var(--hud-cyan); }
+.tag.recon { color: var(--hud-green); border-color: var(--hud-green); }
+.tag.recon::before { background: var(--hud-green); }
+.tag.logistics { color: var(--hud-amber); border-color: var(--hud-amber); }
+.tag.logistics::before { background: var(--hud-amber); }
+.tag.critical { color: var(--hud-red); border-color: var(--hud-red); animation: tagPulse 1.5s ease-in-out infinite; }
+.tag.critical::before { background: var(--hud-red); }
+@keyframes tagPulse { 50% { box-shadow: 0 0 8px rgba(255,23,68,0.3); } }
+.tag.filled { color: var(--hud-bg); }
+.tag.filled.command { background: var(--hud-gold); }
+.tag.filled.tactical { background: var(--hud-cyan); }
+.tag.filled.recon { background: var(--hud-green); }
+</style>
+</head>
+<body>
+
+<h1>AXIOM Intelligence HUD</h1>
+<p class="subtitle">Component Library // Data Displays // v1.0</p>
+
+<!-- SCROLLING TICKER -->
+<p class="section-label">01 // Scrolling Data Ticker</p>
+<div class="ticker-wrap mb48">
+  <div class="ticker-track" id="ticker"></div>
+</div>
+
+<!-- LIVE TIMESTAMPS -->
+<p class="section-label">02 // Live Timestamp Display</p>
+<div class="timestamp-display mb48">
+  <div class="ts-block">
+    <div class="ts-label">UTC / Zulu</div>
+    <div class="ts-value" id="tsUTC">--:--:--</div>
+    <div class="ts-date" id="dateUTC">----</div>
+  </div>
+  <div class="ts-block">
+    <div class="ts-label">Local</div>
+    <div class="ts-value" id="tsLocal">--:--:--</div>
+    <div class="ts-date" id="dateLocal">----</div>
+  </div>
+  <div class="ts-block">
+    <div class="ts-label">Mission Elapsed</div>
+    <div class="ts-value" id="tsMission">00:00:00</div>
+    <div class="ts-date">Session Active</div>
+  </div>
+</div>
+
+<!-- COORDINATE DISPLAY -->
+<p class="section-label">03 // Coordinate Display</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;" class="mb48">
+  <div class="coord-display">
+    <div style="font-size:10px;color:var(--hud-text-dim);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase;">Primary Position</div>
+    <div class="coord-row">
+      <span class="coord-prefix">LAT</span>
+      <span class="coord-deg">37</span><span class="coord-sym">&deg;</span>
+      <span class="coord-deg">46</span><span class="coord-sym">'</span>
+      <span class="coord-deg">26.4</span><span class="coord-sym">"</span>
+      <span class="coord-dir">N</span>
+    </div>
+    <div class="coord-row">
+      <span class="coord-prefix">LON</span>
+      <span class="coord-deg">122</span><span class="coord-sym">&deg;</span>
+      <span class="coord-deg">25</span><span class="coord-sym">'</span>
+      <span class="coord-deg">09.1</span><span class="coord-sym">"</span>
+      <span class="coord-dir">W</span>
+    </div>
+    <div style="margin-top:8px;font-size:10px;color:var(--hud-text-dim);">MGRS: 10S EG 49463 18016</div>
+  </div>
+  <div class="coord-display">
+    <div style="font-size:10px;color:var(--hud-text-dim);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase;">Target Designator</div>
+    <div class="coord-row">
+      <span class="coord-prefix">LAT</span>
+      <span class="coord-deg">51</span><span class="coord-sym">&deg;</span>
+      <span class="coord-deg">28</span><span class="coord-sym">'</span>
+      <span class="coord-deg">38.0</span><span class="coord-sym">"</span>
+      <span class="coord-dir">N</span>
+    </div>
+    <div class="coord-row">
+      <span class="coord-prefix">LON</span>
+      <span class="coord-deg">000</span><span class="coord-sym">&deg;</span>
+      <span class="coord-deg">00</span><span class="coord-sym">'</span>
+      <span class="coord-deg">05.3</span><span class="coord-sym">"</span>
+      <span class="coord-dir">W</span>
+    </div>
+    <div style="margin-top:8px;font-size:10px;color:var(--hud-amber);">BRG: 042&deg; | RNG: 8,641 km</div>
+  </div>
+</div>
+
+<!-- HEX DUMP -->
+<p class="section-label">04 // Hex Dump Display</p>
+<div class="hex-dump mb48" id="hexDump"></div>
+
+<!-- LOG VIEWER -->
+<p class="section-label">05 // Log Viewer</p>
+<div class="log-viewer mb48" id="logViewer"></div>
+
+<!-- HUD TABLE -->
+<p class="section-label">06 // HUD Table</p>
+<div class="hud-table-wrap mb48">
+  <table class="hud-table">
+    <thead>
+      <tr>
+        <th>Callsign</th>
+        <th>Status</th>
+        <th>Bearing</th>
+        <th>Range</th>
+        <th>Classification</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td style="color:var(--hud-cyan)">ALPHA-1</td><td style="color:var(--hud-green)">ACTIVE</td><td>042&deg;</td><td>12.4 km</td><td>FRIENDLY</td></tr>
+      <tr><td style="color:var(--hud-cyan)">BRAVO-7</td><td style="color:var(--hud-green)">ACTIVE</td><td>187&deg;</td><td>28.1 km</td><td>FRIENDLY</td></tr>
+      <tr><td style="color:var(--hud-amber)">UNKNOWN-3</td><td style="color:var(--hud-amber)">TRACKING</td><td>315&deg;</td><td>45.7 km</td><td>PENDING</td></tr>
+      <tr><td style="color:var(--hud-red)">HOSTILE-9</td><td style="color:var(--hud-red)">ENGAGED</td><td>270&deg;</td><td>8.2 km</td><td>HOSTILE</td></tr>
+      <tr><td style="color:var(--hud-cyan)">CHARLIE-2</td><td style="color:var(--hud-text-dim)">OFFLINE</td><td>---</td><td>---</td><td>FRIENDLY</td></tr>
+      <tr><td style="color:var(--hud-cyan)">DELTA-5</td><td style="color:var(--hud-green)">ACTIVE</td><td>098&deg;</td><td>3.1 km</td><td>FRIENDLY</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TREE VIEW -->
+<p class="section-label">07 // Hierarchy / Org Chart</p>
+<div class="tree-view mb48">
+  <div class="tree-node level-0">
+    <div class="node-content"><span class="tree-icon">&#9670;</span><span class="tree-label">AXIOM COMMAND</span><span class="tree-rank">STRATEGIC</span></div>
+    <div class="tree-children">
+      <div class="tree-node level-1">
+        <div class="node-content"><span class="tree-icon">&#9654;</span><span class="tree-label">Sector Alpha</span><span class="tree-rank">Division</span></div>
+        <div class="tree-children">
+          <div class="tree-node"><div class="node-content"><span class="tree-icon">&#8226;</span><span class="tree-label">Unit A-1 "Phantom"</span><span class="tree-rank">Platoon</span></div></div>
+          <div class="tree-node"><div class="node-content"><span class="tree-icon">&#8226;</span><span class="tree-label">Unit A-2 "Spectre"</span><span class="tree-rank">Platoon</span></div></div>
+          <div class="tree-node"><div class="node-content"><span class="tree-icon">&#8226;</span><span class="tree-label">Unit A-3 "Wraith"</span><span class="tree-rank">Platoon</span></div></div>
+        </div>
+      </div>
+      <div class="tree-node level-1">
+        <div class="node-content"><span class="tree-icon">&#9654;</span><span class="tree-label">Sector Bravo</span><span class="tree-rank">Division</span></div>
+        <div class="tree-children">
+          <div class="tree-node"><div class="node-content"><span class="tree-icon">&#8226;</span><span class="tree-label">Unit B-1 "Viper"</span><span class="tree-rank">Platoon</span></div></div>
+          <div class="tree-node"><div class="node-content"><span class="tree-icon">&#8226;</span><span class="tree-label">Unit B-2 "Cobra"</span><span class="tree-rank">Platoon</span></div></div>
+        </div>
+      </div>
+      <div class="tree-node level-1">
+        <div class="node-content"><span class="tree-icon">&#9654;</span><span class="tree-label">Intel Division</span><span class="tree-rank">Support</span></div>
+        <div class="tree-children">
+          <div class="tree-node"><div class="node-content"><span class="tree-icon">&#8226;</span><span class="tree-label">SIGINT Cell "Whisper"</span><span class="tree-rank">Team</span></div></div>
+          <div class="tree-node"><div class="node-content"><span class="tree-icon">&#8226;</span><span class="tree-label">HUMINT Cell "Shadow"</span><span class="tree-rank">Team</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAGS / BADGES -->
+<p class="section-label">08 // Tag / Badge System</p>
+<div class="mb48">
+  <div style="font-size:10px;color:var(--hud-text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Outlined</div>
+  <div class="tag-row">
+    <span class="tag command">Command</span>
+    <span class="tag tactical">Tactical</span>
+    <span class="tag recon">Recon</span>
+    <span class="tag logistics">Logistics</span>
+    <span class="tag critical">Critical</span>
+  </div>
+  <div style="font-size:10px;color:var(--hud-text-dim);margin-bottom:8px;margin-top:16px;text-transform:uppercase;letter-spacing:1px;">Filled</div>
+  <div class="tag-row">
+    <span class="tag filled command">Command</span>
+    <span class="tag filled tactical">Tactical</span>
+    <span class="tag filled recon">Recon</span>
+  </div>
+</div>
+
+<script>
+// Ticker
+const tickerData = [
+  { text: 'SYS.CORE: NOMINAL', color: 'g' },
+  { text: 'NET.LATENCY: 12ms', color: 'g' },
+  { text: 'SEC.THREAT: ELEVATED', color: 'a' },
+  { text: 'MEM.USAGE: 74.2%', color: 'a' },
+  { text: 'NODE-7: BREACH ATTEMPT', color: 'r' },
+  { text: 'GPU.TEMP: 68\u00b0C', color: 'g' },
+  { text: 'UPLINK: STABLE', color: 'g' },
+  { text: 'BACKUP: OVERDUE', color: 'a' },
+  { text: 'AUTH.FAIL: 3 ATTEMPTS', color: 'r' },
+  { text: 'DISK.IO: 240 MB/s', color: 'g' },
+];
+const ticker = document.getElementById('ticker');
+// Duplicate for seamless loop
+for (let r = 0; r < 2; r++) {
+  tickerData.forEach(d => {
+    const item = document.createElement('span');
+    item.className = 'ticker-item';
+    item.innerHTML = `<span class="dot ${d.color}"></span>${d.text}`;
+    ticker.appendChild(item);
+  });
+}
+
+// Timestamps
+const missionStart = Date.now();
+function updateTime() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById('tsUTC').textContent = `${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
+  document.getElementById('dateUTC').textContent = now.toISOString().split('T')[0];
+  document.getElementById('tsLocal').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  document.getElementById('dateLocal').textContent = now.toLocaleDateString('en-CA');
+  const elapsed = Math.floor((Date.now() - missionStart) / 1000);
+  const h = pad(Math.floor(elapsed / 3600));
+  const m = pad(Math.floor((elapsed % 3600) / 60));
+  const s = pad(elapsed % 60);
+  document.getElementById('tsMission').textContent = `${h}:${m}:${s}`;
+}
+setInterval(updateTime, 1000);
+updateTime();
+
+// Hex dump
+const hexDump = document.getElementById('hexDump');
+const hexData = [
+  [0x00, [0x48,0x55,0x44,0x2D,0x43,0x4F,0x52,0x45,0x20,0x76,0x31,0x2E,0x30,0x00,0x00,0x00]],
+  [0x10, [0x41,0x58,0x49,0x4F,0x4D,0x20,0x49,0x4E,0x54,0x45,0x4C,0x20,0x53,0x59,0x53,0x00]],
+  [0x20, [0xFF,0xD8,0xFF,0xE0,0x00,0x10,0x4A,0x46,0x49,0x46,0x00,0x01,0x01,0x00,0x00,0x01]],
+  [0x30, [0x00,0x00,0x00,0x00,0x53,0x45,0x43,0x55,0x52,0x45,0x2D,0x4C,0x49,0x4E,0x4B,0x00]],
+  [0x40, [0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A,0x00,0x00,0x00,0x0D,0x49,0x48,0x44,0x52]],
+  [0x50, [0x7F,0x45,0x4C,0x46,0x02,0x01,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]],
+];
+hexData.forEach(([addr, bytes]) => {
+  const row = document.createElement('div');
+  row.className = 'hex-row';
+  const addrSpan = `<span class="hex-addr">${addr.toString(16).toUpperCase().padStart(8,'0')}</span>`;
+  const hexBytes = bytes.map((b,i) => {
+    const h = b.toString(16).toUpperCase().padStart(2,'0');
+    const cls = (b >= 0x41 && b <= 0x5A) || (b >= 0x61 && b <= 0x7A) ? 'hl' : '';
+    return `<span class="${cls}">${h}</span>`;
+  }).join(' ');
+  const ascii = bytes.map(b => {
+    const c = b >= 0x20 && b <= 0x7E ? String.fromCharCode(b) : '.';
+    const cls = b >= 0x20 && b <= 0x7E ? 'printable' : '';
+    return `<span class="${cls}">${c}</span>`;
+  }).join('');
+  row.innerHTML = `${addrSpan}<span class="hex-bytes">${hexBytes}</span><span class="hex-ascii">${ascii}</span>`;
+  hexDump.appendChild(row);
+});
+
+// Log viewer
+const logViewer = document.getElementById('logViewer');
+const logs = [
+  { ts: '14:32:07.142', level: 'fatal', msg: 'PERIMETER BREACH: Unauthorized access on Node-7 port 443' },
+  { ts: '14:32:07.089', level: 'error', msg: 'Auth failure: Invalid token from 203.0.113.42 (attempt 3/3)' },
+  { ts: '14:32:06.991', level: 'error', msg: 'Auth failure: Invalid token from 203.0.113.42 (attempt 2/3)' },
+  { ts: '14:32:06.844', level: 'warn', msg: 'Rate limit threshold exceeded for subnet 203.0.113.0/24' },
+  { ts: '14:32:06.710', level: 'error', msg: 'Auth failure: Invalid token from 203.0.113.42 (attempt 1/3)' },
+  { ts: '14:32:05.332', level: 'info', msg: 'Firewall rule updated: block 203.0.113.0/24 ingress' },
+  { ts: '14:31:58.101', level: 'info', msg: 'TLS handshake completed for client session #847291' },
+  { ts: '14:31:55.440', level: 'debug', msg: 'Heartbeat received from Node-12 (latency: 4ms)' },
+  { ts: '14:31:52.003', level: 'info', msg: 'Certificate rotation complete for *.axiom.internal' },
+  { ts: '14:31:48.771', level: 'debug', msg: 'Cache invalidation: /api/v2/agents/* (TTL expired)' },
+  { ts: '14:31:44.219', level: 'info', msg: 'Scheduled backup initiated for cluster-east' },
+  { ts: '14:31:40.005', level: 'warn', msg: 'Disk usage at 78% on /data/primary — threshold: 80%' },
+  { ts: '14:31:35.882', level: 'debug', msg: 'Query optimization: index scan on agents_active (0.4ms)' },
+  { ts: '14:31:30.109', level: 'info', msg: 'Agent ALPHA-1 check-in: position updated, status NOMINAL' },
+];
+logs.forEach(l => {
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-ts">${l.ts}</span><span class="log-level ${l.level}">${l.level.toUpperCase()}</span><span class="log-msg">${l.msg}</span>`;
+  logViewer.appendChild(line);
+});
+</script>
+</body>
+</html>

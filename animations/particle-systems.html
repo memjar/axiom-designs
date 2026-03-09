@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM Particle Systems</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--hud-cyan:#00e5ff;--hud-amber:#ff9800;--hud-red:#ff1744;--hud-green:#00e676;--hud-gold:#ffd740;--hud-bg:#050a0e}
+body{background:var(--hud-bg);color:var(--hud-cyan);font-family:'Share Tech Mono',monospace}
+h1{text-align:center;padding:40px 0 10px;font-size:28px;letter-spacing:6px;text-transform:uppercase;text-shadow:0 0 20px rgba(0,229,255,.4)}
+.subtitle{text-align:center;color:var(--hud-amber);font-size:12px;letter-spacing:4px;margin-bottom:40px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;padding:0 40px 60px;max-width:1400px;margin:0 auto}
+.panel{background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.15);border-radius:4px;padding:20px;position:relative}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--hud-cyan),transparent)}
+.panel-title{font-size:11px;letter-spacing:3px;color:var(--hud-amber);margin-bottom:10px;text-transform:uppercase}
+canvas{width:100%;height:350px;display:block;border:1px solid rgba(0,229,255,.08);border-radius:2px;cursor:crosshair}
+</style>
+</head>
+<body>
+<h1>AXIOM Particle Systems</h1>
+<div class="subtitle">// HIGH-PERFORMANCE CANVAS ENGINES //</div>
+<div class="grid">
+
+<div class="panel">
+<div class="panel-title">01 // Grid Dots — Mouse Reactive</div>
+<canvas id="grid-dots"></canvas>
+</div>
+
+<div class="panel">
+<div class="panel-title">02 // Connection Mesh</div>
+<canvas id="conn-mesh"></canvas>
+</div>
+
+<div class="panel">
+<div class="panel-title">03 // Data Rain</div>
+<canvas id="data-rain"></canvas>
+</div>
+
+<div class="panel">
+<div class="panel-title">04 // Orbital Particles</div>
+<canvas id="orbital"></canvas>
+</div>
+
+<div class="panel">
+<div class="panel-title">05 // Constellation — Hover to Connect</div>
+<canvas id="constellation"></canvas>
+</div>
+
+<div class="panel">
+<div class="panel-title">06 // Signal Propagation — Click to Emit</div>
+<canvas id="signal"></canvas>
+</div>
+
+</div>
+
+<script>
+const DPR=window.devicePixelRatio||1;
+function initCanvas(id){
+const c=document.getElementById(id);
+const rect=c.getBoundingClientRect();
+c.width=rect.width*DPR;c.height=rect.height*DPR;
+const ctx=c.getContext('2d');ctx.scale(DPR,DPR);
+return{c,ctx,w:rect.width,h:rect.height};
+}
+
+function trackMouse(c){
+const m={x:-1000,y:-1000};
+c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect();m.x=e.clientX-r.left;m.y=e.clientY-r.top});
+c.addEventListener('mouseleave',()=>{m.x=-1000;m.y=-1000});
+return m;
+}
+
+// 1. GRID DOTS
+(function(){
+const{c,ctx,w,h}=initCanvas('grid-dots');
+const m=trackMouse(c);
+const spacing=25;const cols=Math.floor(w/spacing);const rows=Math.floor(h/spacing);
+const ox=(w-cols*spacing)/2+spacing/2;const oy=(h-rows*spacing)/2+spacing/2;
+function draw(){
+ctx.clearRect(0,0,w,h);
+for(let r=0;r<rows;r++){
+for(let c=0;c<cols;c++){
+const x=ox+c*spacing,y=oy+r*spacing;
+const dx=x-m.x,dy=y-m.y;
+const dist=Math.sqrt(dx*dx+dy*dy);
+const influence=Math.max(0,1-dist/120);
+const radius=1.5+influence*4;
+const alpha=0.15+influence*0.7;
+ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);
+if(influence>0.5){ctx.fillStyle=`rgba(255,152,0,${alpha})`}
+else if(influence>0.2){ctx.fillStyle=`rgba(0,229,255,${alpha})`}
+else{ctx.fillStyle=`rgba(0,229,255,${alpha})`}
+ctx.fill();
+if(influence>.1){
+ctx.shadowColor='#00e5ff';ctx.shadowBlur=influence*15;
+ctx.fill();ctx.shadowBlur=0;
+}
+}
+}
+requestAnimationFrame(draw);
+}
+draw();
+})();
+
+// 2. CONNECTION MESH
+(function(){
+const{c,ctx,w,h}=initCanvas('conn-mesh');
+const N=80;const maxDist=100;
+const particles=Array.from({length:N},()=>({
+x:Math.random()*w,y:Math.random()*h,
+vx:(Math.random()-.5)*.8,vy:(Math.random()-.5)*.8
+}));
+function draw(){
+ctx.clearRect(0,0,w,h);
+particles.forEach(p=>{
+p.x+=p.vx;p.y+=p.vy;
+if(p.x<0||p.x>w)p.vx*=-1;
+if(p.y<0||p.y>h)p.vy*=-1;
+});
+// Connections
+for(let i=0;i<N;i++){
+for(let j=i+1;j<N;j++){
+const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+const dist=Math.sqrt(dx*dx+dy*dy);
+if(dist<maxDist){
+const alpha=(1-dist/maxDist)*.4;
+ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);
+ctx.lineTo(particles[j].x,particles[j].y);
+ctx.strokeStyle=`rgba(0,229,255,${alpha})`;ctx.lineWidth=.5;ctx.stroke();
+}
+}
+}
+// Dots
+particles.forEach(p=>{
+ctx.beginPath();ctx.arc(p.x,p.y,2,0,Math.PI*2);
+ctx.fillStyle='#00e5ff';ctx.fill();
+});
+requestAnimationFrame(draw);
+}
+draw();
+})();
+
+// 3. DATA RAIN
+(function(){
+const{c,ctx,w,h}=initCanvas('data-rain');
+const fontSize=13;const cols=Math.floor(w/fontSize);
+const chars='0123456789ABCDEF';
+const drops=Array.from({length:cols},()=>({y:Math.random()*h/fontSize|0,speed:0.3+Math.random()*0.7}));
+function draw(){
+ctx.fillStyle='rgba(5,10,14,.12)';ctx.fillRect(0,0,w,h);
+ctx.font=fontSize+'px Share Tech Mono';
+drops.forEach((d,i)=>{
+const ch=chars[Math.random()*chars.length|0];
+const x=i*fontSize;const y=d.y*fontSize;
+// Head character brighter
+ctx.fillStyle=Math.random()>.3?'rgba(0,229,255,.8)':'rgba(255,152,0,.7)';
+ctx.fillText(ch,x,y);
+// Dim trail char above
+if(Math.random()>.9){
+ctx.fillStyle='rgba(0,229,255,.15)';
+ctx.fillText(chars[Math.random()*chars.length|0],x,y-fontSize);
+}
+d.y+=d.speed;
+if(d.y*fontSize>h&&Math.random()>.98){d.y=0;d.speed=0.3+Math.random()*0.7}
+});
+requestAnimationFrame(draw);
+}
+draw();
+})();
+
+// 4. ORBITAL PARTICLES
+(function(){
+const{c,ctx,w,h}=initCanvas('orbital');
+const cx=w/2,cy=h/2;
+const N=120;
+const particles=Array.from({length:N},()=>{
+const r=30+Math.random()*140;
+const angle=Math.random()*Math.PI*2;
+const speed=(0.005+Math.random()*0.02)*(Math.random()>.5?1:-1);
+return{r,angle,speed,size:1+Math.random()*2,
+color:Math.random()>.7?'#ff9800':Math.random()>.4?'#00e5ff':'#00e676'};
+});
+function draw(){
+ctx.fillStyle='rgba(5,10,14,.15)';ctx.fillRect(0,0,w,h);
+// Center glow
+const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,25);
+grad.addColorStop(0,'rgba(0,229,255,.3)');grad.addColorStop(1,'transparent');
+ctx.fillStyle=grad;ctx.fillRect(cx-30,cy-30,60,60);
+// Center dot
+ctx.beginPath();ctx.arc(cx,cy,3,0,Math.PI*2);ctx.fillStyle='#00e5ff';ctx.fill();
+// Orbit rings
+[50,90,130].forEach(r=>{
+ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+ctx.strokeStyle='rgba(0,229,255,.08)';ctx.lineWidth=.5;ctx.stroke();
+});
+particles.forEach(p=>{
+p.angle+=p.speed;
+const x=cx+p.r*Math.cos(p.angle);
+const y=cy+p.r*Math.sin(p.angle)*0.6; // elliptical
+ctx.beginPath();ctx.arc(x,y,p.size,0,Math.PI*2);
+ctx.fillStyle=p.color;ctx.globalAlpha=.7;ctx.fill();ctx.globalAlpha=1;
+});
+requestAnimationFrame(draw);
+}
+draw();
+})();
+
+// 5. CONSTELLATION
+(function(){
+const{c,ctx,w,h}=initCanvas('constellation');
+const m=trackMouse(c);
+const N=150;const connectRadius=120;
+const stars=Array.from({length:N},()=>({
+x:Math.random()*w,y:Math.random()*h,
+size:.5+Math.random()*2,
+twinkle:Math.random()*Math.PI*2,
+speed:.01+Math.random()*.03
+}));
+function draw(){
+ctx.clearRect(0,0,w,h);
+// Background stars
+stars.forEach(s=>{
+s.twinkle+=s.speed;
+const alpha=.3+Math.sin(s.twinkle)*.3;
+ctx.beginPath();ctx.arc(s.x,s.y,s.size,0,Math.PI*2);
+ctx.fillStyle=`rgba(0,229,255,${alpha})`;ctx.fill();
+});
+// Connections near mouse
+if(m.x>0){
+const nearby=stars.filter(s=>{
+const dx=s.x-m.x,dy=s.y-m.y;
+return Math.sqrt(dx*dx+dy*dy)<connectRadius;
+});
+for(let i=0;i<nearby.length;i++){
+for(let j=i+1;j<nearby.length;j++){
+const dx=nearby[i].x-nearby[j].x,dy=nearby[i].y-nearby[j].y;
+const dist=Math.sqrt(dx*dx+dy*dy);
+if(dist<connectRadius*.8){
+const alpha=(1-dist/(connectRadius*.8))*.5;
+ctx.beginPath();ctx.moveTo(nearby[i].x,nearby[i].y);
+ctx.lineTo(nearby[j].x,nearby[j].y);
+ctx.strokeStyle=`rgba(255,215,64,${alpha})`;ctx.lineWidth=.8;ctx.stroke();
+}
+}
+// Line to cursor
+const dx=nearby[i].x-m.x,dy=nearby[i].y-m.y;
+const dist=Math.sqrt(dx*dx+dy*dy);
+const alpha=(1-dist/connectRadius)*.3;
+ctx.beginPath();ctx.moveTo(m.x,m.y);ctx.lineTo(nearby[i].x,nearby[i].y);
+ctx.strokeStyle=`rgba(0,229,255,${alpha})`;ctx.lineWidth=.4;ctx.stroke();
+// Brighten nearby
+ctx.beginPath();ctx.arc(nearby[i].x,nearby[i].y,nearby[i].size+1,0,Math.PI*2);
+ctx.fillStyle=`rgba(255,215,64,${alpha})`;ctx.fill();
+}
+// Cursor dot
+ctx.beginPath();ctx.arc(m.x,m.y,3,0,Math.PI*2);
+ctx.fillStyle='rgba(0,229,255,.5)';ctx.fill();
+}
+requestAnimationFrame(draw);
+}
+draw();
+})();
+
+// 6. SIGNAL PROPAGATION
+(function(){
+const{c,ctx,w,h}=initCanvas('signal');
+const N=200;
+const particles=Array.from({length:N},()=>({
+x:Math.random()*w,y:Math.random()*h,
+ox:0,oy:0,// original position stored after init
+vx:0,vy:0,size:1.5+Math.random()
+}));
+particles.forEach(p=>{p.ox=p.x;p.oy=p.y});
+const waves=[];
+c.addEventListener('click',e=>{
+const r=c.getBoundingClientRect();
+waves.push({x:e.clientX-r.left,y:e.clientY-r.top,radius:0,maxRadius:300,alpha:1});
+});
+
+function draw(){
+ctx.clearRect(0,0,w,h);
+// Update waves
+for(let i=waves.length-1;i>=0;i--){
+const wave=waves[i];
+wave.radius+=3;wave.alpha=1-wave.radius/wave.maxRadius;
+if(wave.alpha<=0){waves.splice(i,1);continue}
+ctx.beginPath();ctx.arc(wave.x,wave.y,wave.radius,0,Math.PI*2);
+ctx.strokeStyle=`rgba(0,229,255,${wave.alpha*.5})`;ctx.lineWidth=2;ctx.stroke();
+// Inner ring
+if(wave.radius>10){
+ctx.beginPath();ctx.arc(wave.x,wave.y,wave.radius-8,0,Math.PI*2);
+ctx.strokeStyle=`rgba(255,152,0,${wave.alpha*.3})`;ctx.lineWidth=1;ctx.stroke();
+}
+}
+// Particles
+particles.forEach(p=>{
+// Displacement from waves
+let fx=0,fy=0;
+waves.forEach(wave=>{
+const dx=p.ox-wave.x,dy=p.oy-wave.y;
+const dist=Math.sqrt(dx*dx+dy*dy);
+const waveDist=Math.abs(dist-wave.radius);
+if(waveDist<30){
+const force=(1-waveDist/30)*15*wave.alpha;
+const angle=Math.atan2(dy,dx);
+fx+=Math.cos(angle)*force;
+fy+=Math.sin(angle)*force;
+}
+});
+// Spring back
+p.vx+=(p.ox+fx-p.x)*.1;
+p.vy+=(p.oy+fy-p.y)*.1;
+p.vx*=.8;p.vy*=.8;
+p.x+=p.vx;p.y+=p.vy;
+const displacement=Math.sqrt((p.x-p.ox)**2+(p.y-p.oy)**2);
+const alpha=Math.min(.2+displacement*.05,1);
+ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+ctx.fillStyle=displacement>5?`rgba(255,152,0,${alpha})`:`rgba(0,229,255,${alpha})`;
+ctx.fill();
+});
+// Instructions
+if(waves.length===0){
+ctx.fillStyle='rgba(0,229,255,.2)';ctx.font='11px Share Tech Mono';
+ctx.textAlign='center';ctx.fillText('CLICK TO EMIT SIGNAL',w/2,h/2);
+}
+requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+</body>
+</html>

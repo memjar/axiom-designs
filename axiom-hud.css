@@ -1,0 +1,193 @@
+/* ╔══════════════════════════════════════════════════════════╗
+   ║  AXIOM HUD DESIGN SYSTEM — Master CSS                   ║
+   ║  AXE Technology Intelligence Platform                    ║
+   ║  Pure CSS — Zero Dependencies                            ║
+   ╚══════════════════════════════════════════════════════════╝ */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* ── PALETTE ── */
+:root {
+  --hud-bg:        #050a0e;
+  --hud-surface:   #0a1118;
+  --hud-elevated:  #0f1a24;
+  --hud-cyan:      #00e5ff;
+  --hud-amber:     #ff9800;
+  --hud-gold:      #ffd740;
+  --hud-green:     #00e676;
+  --hud-red:       #ff1744;
+  --hud-blue:      #2979ff;
+  --hud-text:      #c8dce8;
+  --hud-text-dim:  #4a6a7a;
+  --hud-grid:      rgba(0,229,255,0.04);
+  --hud-border:    rgba(0,229,255,0.12);
+  --hud-glow:      rgba(0,229,255,0.25);
+  --font-mono:     'Share Tech Mono', 'JetBrains Mono', monospace;
+  --font-code:     'JetBrains Mono', monospace;
+}
+
+/* ── KEYFRAMES ── */
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes hudPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+@keyframes hudBreathe {
+  0%, 100% { opacity: 0.6; box-shadow: 0 0 8px var(--hud-cyan); }
+  50%      { opacity: 1;   box-shadow: 0 0 20px var(--hud-cyan); }
+}
+@keyframes hudScanIn {
+  0%   { clip-path: inset(0 100% 0 0); opacity: 0; }
+  60%  { clip-path: inset(0 0 0 0);    opacity: 0.6; }
+  100% { clip-path: inset(0 0 0 0);    opacity: 1; }
+}
+@keyframes hudFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes hudGlitch {
+  0%, 90%, 100% { text-shadow: none; }
+  92% { text-shadow: -2px 0 var(--hud-red), 2px 0 var(--hud-cyan); }
+  94% { text-shadow: 2px 0 var(--hud-red), -2px 0 var(--hud-cyan); }
+  96% { text-shadow: -1px 0 var(--hud-amber), 1px 0 var(--hud-blue); }
+}
+@keyframes dataTicker {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(-100%); }
+}
+@keyframes reticleRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes reticleRotateReverse {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+@keyframes scanLine {
+  0%   { top: -2px; }
+  100% { top: 100%; }
+}
+@keyframes hexPulse {
+  0%, 100% { stroke-opacity: 0.3; }
+  50%      { stroke-opacity: 1; }
+}
+@keyframes progressFill {
+  from { width: 0; }
+}
+@keyframes alertFlash {
+  0%, 100% { border-color: var(--hud-red); }
+  50%      { border-color: transparent; }
+}
+@keyframes typewriter {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+@keyframes waveform {
+  0%   { height: 4px; }
+  50%  { height: 20px; }
+  100% { height: 4px; }
+}
+@keyframes orbitDot {
+  from { transform: rotate(0deg) translateX(40px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(40px) rotate(-360deg); }
+}
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.03; }
+  50%      { opacity: 0.08; }
+}
+@keyframes borderTrace {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+@keyframes sonarPing {
+  0%   { transform: scale(0.2); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+@keyframes loadBarSlide {
+  0%   { left: -30%; }
+  100% { left: 100%; }
+}
+@keyframes countUp {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── SCANLINE OVERLAY (apply to containers) ── */
+.hud-scanlines {
+  position: relative;
+}
+.hud-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ── GRID BACKGROUND ── */
+.hud-grid-bg {
+  background-image:
+    repeating-linear-gradient(0deg, var(--hud-grid) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, var(--hud-grid) 0 1px, transparent 1px 40px);
+  background-size: 40px 40px;
+}
+
+/* ── CORNER BRACKETS ── */
+.hud-bracket {
+  position: relative;
+}
+.hud-bracket::before,
+.hud-bracket::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: var(--hud-cyan);
+  border-style: solid;
+  pointer-events: none;
+  z-index: 5;
+}
+.hud-bracket::before {
+  top: -1px; left: -1px;
+  border-width: 2px 0 0 2px;
+}
+.hud-bracket::after {
+  bottom: -1px; right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+/* Extra corners via wrapper */
+.hud-bracket-full {
+  position: relative;
+}
+.hud-bracket-full::before {
+  content: '';
+  position: absolute;
+  top: -1px; right: -1px;
+  width: 16px; height: 16px;
+  border-top: 2px solid var(--hud-cyan);
+  border-right: 2px solid var(--hud-cyan);
+  pointer-events: none; z-index: 5;
+}
+.hud-bracket-full::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: -1px;
+  width: 16px; height: 16px;
+  border-bottom: 2px solid var(--hud-cyan);
+  border-left: 2px solid var(--hud-cyan);
+  pointer-events: none; z-index: 5;
+}

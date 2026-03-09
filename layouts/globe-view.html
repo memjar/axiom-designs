@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM // GLOBAL OPERATIONS</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --hud-bg: #050a0e;
+  --hud-cyan: #00e5ff;
+  --hud-amber: #ff9800;
+  --hud-red: #ff1744;
+  --hud-green: #00e676;
+  --hud-gold: #ffd740;
+  --hud-text: #c8dce8;
+  --hud-text-dim: #4a6a7a;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--hud-bg);
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--hud-text);
+  font-size: 12px;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-rows: 40px 1fr 36px;
+  height: 100vh;
+}
+
+/* Top bar */
+.top-bar {
+  grid-column: 1 / -1;
+  background: rgba(0,229,255,0.04);
+  border-bottom: 1px solid rgba(0,229,255,0.15);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+}
+.top-bar .title { color: var(--hud-cyan); letter-spacing: 4px; font-size: 13px; text-shadow: 0 0 20px rgba(0,229,255,0.3); }
+.top-bar .clock { color: var(--hud-amber); }
+
+/* Globe area */
+.globe-area {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+
+/* HUD frame corners */
+.globe-area::before { content: ''; position: absolute; top: 16px; left: 16px; width: 30px; height: 30px; border-top: 1px solid var(--hud-cyan); border-left: 1px solid var(--hud-cyan); opacity: 0.4; }
+.globe-area::after { content: ''; position: absolute; top: 16px; right: 16px; width: 30px; height: 30px; border-top: 1px solid var(--hud-cyan); border-right: 1px solid var(--hud-cyan); opacity: 0.4; }
+
+.globe-wrapper {
+  width: 500px; height: 500px;
+  position: relative;
+  perspective: 800px;
+}
+
+/* CSS 3D globe */
+.globe {
+  width: 100%; height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: globe-rotate 40s linear infinite;
+}
+@keyframes globe-rotate { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+
+.globe-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  border-radius: 50%;
+  border: 1px solid rgba(0,229,255,0.12);
+  transform-style: preserve-3d;
+}
+
+/* Meridians */
+.meridian {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,229,255,0.08);
+  transform-origin: center;
+}
+
+/* Equator and parallels */
+.parallel {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid rgba(0,229,255,0.08);
+  border-radius: 50%;
+}
+
+/* Globe outline */
+.globe-outline {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 400px; height: 400px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,229,255,0.25);
+  box-shadow: 0 0 40px rgba(0,229,255,0.08), inset 0 0 40px rgba(0,229,255,0.03);
+}
+
+/* Nodes */
+.node {
+  position: absolute;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--hud-cyan);
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+.node::after {
+  content: '';
+  position: absolute; inset: -4px;
+  border-radius: 50%;
+  border: 1px solid var(--hud-cyan);
+  animation: node-pulse 2s ease-out infinite;
+  opacity: 0;
+}
+@keyframes node-pulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+.node-label {
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  color: var(--hud-text-dim);
+  white-space: nowrap;
+}
+.node.active { background: var(--hud-green); }
+.node.active::after { border-color: var(--hud-green); }
+.node.alert { background: var(--hud-amber); }
+.node.alert::after { border-color: var(--hud-amber); }
+
+/* Connection lines (SVG overlay) */
+.connections-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+}
+
+/* Satellite orbit */
+.orbit-path {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 460px; height: 200px;
+  transform: translate(-50%, -50%) rotateX(60deg) rotateZ(-20deg);
+  border: 1px dashed rgba(0,229,255,0.15);
+  border-radius: 50%;
+  transform-style: preserve-3d;
+}
+.satellite {
+  position: absolute;
+  top: -3px; left: 50%;
+  width: 6px; height: 6px;
+  background: var(--hud-gold);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255,215,64,0.6);
+  animation: orbit-sat 12s linear infinite;
+}
+@keyframes orbit-sat {
+  from { transform: rotate(0deg) translateX(230px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(230px) rotate(-360deg); }
+}
+
+/* Particle flow along connections */
+@keyframes flow-particle {
+  0% { offset-distance: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+/* Side panel */
+.side-panel {
+  background: rgba(0,229,255,0.02);
+  border-left: 1px solid rgba(0,229,255,0.15);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.panel-header {
+  padding: 12px 16px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--hud-amber);
+  border-bottom: 1px solid rgba(0,229,255,0.1);
+}
+.node-list { flex: 1; overflow-y: auto; padding: 8px; }
+.node-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0,229,255,0.06);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.node-item:hover { background: rgba(0,229,255,0.05); }
+.node-name { font-size: 12px; color: var(--hud-text); display: flex; align-items: center; gap: 8px; }
+.node-status { width: 6px; height: 6px; border-radius: 50%; }
+.node-status.online { background: var(--hud-green); box-shadow: 0 0 6px rgba(0,230,118,0.5); }
+.node-status.degraded { background: var(--hud-amber); box-shadow: 0 0 6px rgba(255,152,0,0.5); }
+.node-meta { font-size: 9px; color: var(--hud-text-dim); margin-top: 4px; }
+.node-stats { display: flex; gap: 16px; margin-top: 4px; font-size: 9px; }
+.node-stats span { color: var(--hud-text-dim); }
+.node-stats .val { color: var(--hud-cyan); }
+
+.panel-footer {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(0,229,255,0.1);
+  font-size: 10px;
+}
+.panel-footer .stat-row { display: flex; justify-content: space-between; padding: 3px 0; color: var(--hud-text-dim); }
+.panel-footer .stat-row .v { color: var(--hud-cyan); }
+
+/* Bottom bar */
+.bottom-bar {
+  grid-column: 1 / -1;
+  background: rgba(0,229,255,0.04);
+  border-top: 1px solid rgba(0,229,255,0.15);
+  display: flex; align-items: center; padding: 0 16px;
+  gap: 24px; font-size: 10px; color: var(--hud-text-dim);
+}
+.bottom-bar .active-text { color: var(--hud-green); }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="top-bar">
+    <div class="title">AXIOM GLOBAL OPS</div>
+    <div style="color:var(--hud-text-dim);font-size:10px;letter-spacing:2px;">NETWORK TOPOLOGY // LIVE</div>
+    <div class="clock" id="clock">00:00:00 UTC</div>
+  </div>
+
+  <div class="globe-area">
+    <!-- Globe -->
+    <div class="globe-wrapper">
+      <div class="globe-outline"></div>
+
+      <!-- SVG for wireframe and connections -->
+      <svg class="connections-svg" viewBox="0 0 500 500">
+        <!-- Latitude lines (ellipses) -->
+        <ellipse cx="250" cy="150" rx="190" ry="40" fill="none" stroke="rgba(0,229,255,0.07)" stroke-width="0.5"/>
+        <ellipse cx="250" cy="250" rx="200" ry="8" fill="none" stroke="rgba(0,229,255,0.12)" stroke-width="0.8"/>
+        <ellipse cx="250" cy="350" rx="190" ry="40" fill="none" stroke="rgba(0,229,255,0.07)" stroke-width="0.5"/>
+        <ellipse cx="250" cy="200" rx="196" ry="28" fill="none" stroke="rgba(0,229,255,0.06)" stroke-width="0.5"/>
+        <ellipse cx="250" cy="300" rx="196" ry="28" fill="none" stroke="rgba(0,229,255,0.06)" stroke-width="0.5"/>
+
+        <!-- Longitude arcs -->
+        <ellipse cx="250" cy="250" rx="10" ry="200" fill="none" stroke="rgba(0,229,255,0.08)" stroke-width="0.5"/>
+        <ellipse cx="250" cy="250" rx="70" ry="200" fill="none" stroke="rgba(0,229,255,0.07)" stroke-width="0.5"/>
+        <ellipse cx="250" cy="250" rx="130" ry="200" fill="none" stroke="rgba(0,229,255,0.06)" stroke-width="0.5"/>
+        <ellipse cx="250" cy="250" rx="170" ry="200" fill="none" stroke="rgba(0,229,255,0.05)" stroke-width="0.5"/>
+
+        <!-- Connection lines between nodes -->
+        <path id="conn1" d="M 160 170 Q 250 100 340 190" fill="none" stroke="rgba(0,229,255,0.2)" stroke-width="1" stroke-dasharray="4 6">
+          <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="2s" repeatCount="indefinite"/>
+        </path>
+        <path id="conn2" d="M 160 170 Q 200 300 180 320" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="1" stroke-dasharray="4 6">
+          <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="2.5s" repeatCount="indefinite"/>
+        </path>
+        <path id="conn3" d="M 340 190 Q 350 280 310 310" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="1" stroke-dasharray="4 6">
+          <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="1.8s" repeatCount="indefinite"/>
+        </path>
+        <path id="conn4" d="M 250 160 Q 300 120 340 190" fill="none" stroke="rgba(0,230,118,0.2)" stroke-width="1" stroke-dasharray="4 6">
+          <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="2.2s" repeatCount="indefinite"/>
+        </path>
+        <path id="conn5" d="M 180 320 Q 250 350 310 310" fill="none" stroke="rgba(0,229,255,0.12)" stroke-width="1" stroke-dasharray="4 6">
+          <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="3s" repeatCount="indefinite"/>
+        </path>
+        <path d="M 250 160 Q 180 140 160 170" fill="none" stroke="rgba(255,152,0,0.2)" stroke-width="1" stroke-dasharray="4 6">
+          <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="2s" repeatCount="indefinite"/>
+        </path>
+
+        <!-- Particles flowing along paths -->
+        <circle r="2" fill="var(--hud-cyan)">
+          <animateMotion dur="3s" repeatCount="indefinite"><mpath href="#conn1"/></animateMotion>
+          <animate attributeName="opacity" values="0;1;1;0" dur="3s" repeatCount="indefinite"/>
+        </circle>
+        <circle r="2" fill="var(--hud-cyan)">
+          <animateMotion dur="4s" repeatCount="indefinite"><mpath href="#conn2"/></animateMotion>
+          <animate attributeName="opacity" values="0;1;1;0" dur="4s" repeatCount="indefinite"/>
+        </circle>
+        <circle r="2" fill="var(--hud-green)">
+          <animateMotion dur="3.5s" repeatCount="indefinite"><mpath href="#conn4"/></animateMotion>
+          <animate attributeName="opacity" values="0;1;1;0" dur="3.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle r="1.5" fill="var(--hud-cyan)">
+          <animateMotion dur="5s" repeatCount="indefinite"><mpath href="#conn5"/></animateMotion>
+          <animate attributeName="opacity" values="0;1;1;0" dur="5s" repeatCount="indefinite"/>
+        </circle>
+        <circle r="2" fill="var(--hud-cyan)">
+          <animateMotion dur="2.8s" repeatCount="indefinite"><mpath href="#conn3"/></animateMotion>
+          <animate attributeName="opacity" values="0;1;1;0" dur="2.8s" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+
+      <!-- Nodes -->
+      <div class="node active" style="top:33%;left:32%"><div class="node-label">LONDON</div></div>
+      <div class="node active" style="top:38%;left:68%"><div class="node-label">TOKYO</div></div>
+      <div class="node" style="top:32%;left:50%"><div class="node-label">BERLIN</div></div>
+      <div class="node alert" style="top:64%;left:36%"><div class="node-label">S.PAULO</div></div>
+      <div class="node" style="top:62%;left:62%"><div class="node-label">SYDNEY</div></div>
+      <div class="node active" style="top:28%;left:22%"><div class="node-label">NYC</div></div>
+
+      <!-- Satellite orbit -->
+      <div class="orbit-path">
+        <div class="satellite"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Side panel -->
+  <div class="side-panel">
+    <div class="panel-header">// NODE STATUS</div>
+    <div class="node-list">
+      <div class="node-item">
+        <div class="node-name"><span class="node-status online"></span>NYC-PRIMARY</div>
+        <div class="node-meta">us-east-1 // Agent: FORGE</div>
+        <div class="node-stats"><span>CPU <span class="val">34%</span></span><span>MEM <span class="val">12.4G</span></span></div>
+      </div>
+      <div class="node-item">
+        <div class="node-name"><span class="node-status online"></span>LONDON-RELAY</div>
+        <div class="node-meta">eu-west-2 // Agent: CORTANA</div>
+        <div class="node-stats"><span>CPU <span class="val">28%</span></span><span>MEM <span class="val">8.2G</span></span></div>
+      </div>
+      <div class="node-item">
+        <div class="node-name"><span class="node-status online"></span>TOKYO-EDGE</div>
+        <div class="node-meta">ap-northeast-1 // Agent: KLAUS</div>
+        <div class="node-stats"><span>CPU <span class="val">42%</span></span><span>MEM <span class="val">16.1G</span></span></div>
+      </div>
+      <div class="node-item">
+        <div class="node-name"><span class="node-status online"></span>BERLIN-NODE</div>
+        <div class="node-meta">eu-central-1 // Standby</div>
+        <div class="node-stats"><span>CPU <span class="val">12%</span></span><span>MEM <span class="val">4.8G</span></span></div>
+      </div>
+      <div class="node-item">
+        <div class="node-name"><span class="node-status degraded"></span>SAO-PAULO-SOUTH</div>
+        <div class="node-meta">sa-east-1 // Degraded</div>
+        <div class="node-stats"><span>CPU <span class="val">78%</span></span><span>MEM <span class="val">14.9G</span></span></div>
+      </div>
+      <div class="node-item">
+        <div class="node-name"><span class="node-status online"></span>SYDNEY-PACIFIC</div>
+        <div class="node-meta">ap-southeast-2 // Agent: ECHO</div>
+        <div class="node-stats"><span>CPU <span class="val">22%</span></span><span>MEM <span class="val">6.7G</span></span></div>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <div class="stat-row"><span>TOTAL NODES</span><span class="v">6</span></div>
+      <div class="stat-row"><span>ONLINE</span><span class="v" style="color:var(--hud-green);">5</span></div>
+      <div class="stat-row"><span>DEGRADED</span><span class="v" style="color:var(--hud-amber);">1</span></div>
+      <div class="stat-row"><span>LATENCY AVG</span><span class="v">24ms</span></div>
+      <div class="stat-row"><span>BANDWIDTH</span><span class="v">4.2 GB/s</span></div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <span>AXIOM GLOBAL OPS v4.2</span>
+    <span>MESH: <span class="active-text">ACTIVE</span></span>
+    <span>ENCRYPTION: AES-256</span>
+    <span>SAT WINDOW: 11m 42s</span>
+    <span>CONNECTIONS: 15</span>
+    <span id="clock2" style="margin-left:auto;color:var(--hud-amber);"></span>
+  </div>
+</div>
+
+<script>
+function updateClock() {
+  const t = new Date().toISOString().slice(11, 19) + ' UTC';
+  document.getElementById('clock').textContent = t;
+  document.getElementById('clock2').textContent = t;
+}
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+</body>
+</html>

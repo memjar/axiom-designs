@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM SVG Animations</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--hud-cyan:#00e5ff;--hud-amber:#ff9800;--hud-red:#ff1744;--hud-green:#00e676;--hud-gold:#ffd740;--hud-bg:#050a0e}
+body{background:var(--hud-bg);color:var(--hud-cyan);font-family:'Share Tech Mono',monospace;overflow-x:hidden}
+h1{text-align:center;padding:40px 0 10px;font-size:28px;letter-spacing:6px;text-transform:uppercase;color:var(--hud-cyan);text-shadow:0 0 20px rgba(0,229,255,.4)}
+.subtitle{text-align:center;color:var(--hud-amber);font-size:12px;letter-spacing:4px;margin-bottom:40px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;padding:0 40px 60px;max-width:1400px;margin:0 auto}
+.panel{background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.15);border-radius:4px;padding:20px;position:relative;overflow:hidden}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--hud-cyan),transparent)}
+.panel-title{font-size:11px;letter-spacing:3px;color:var(--hud-amber);margin-bottom:15px;text-transform:uppercase}
+svg{width:100%;height:auto;display:block}
+
+/* Glows */
+.glow-cyan{filter:drop-shadow(0 0 3px rgba(0,229,255,.6))}
+.glow-amber{filter:drop-shadow(0 0 3px rgba(255,152,0,.6))}
+.glow-red{filter:drop-shadow(0 0 3px rgba(255,23,68,.6))}
+.glow-green{filter:drop-shadow(0 0 3px rgba(0,230,118,.6))}
+
+/* Compass */
+@keyframes compassSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes needleOscillate{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(25deg)}}
+@keyframes outerRingPulse{0%,100%{opacity:.3;stroke-width:.5}50%{opacity:.8;stroke-width:1}}
+#compass-outer{animation:compassSpin 30s linear infinite}
+#compass-needle{animation:needleOscillate 4s ease-in-out infinite;transform-origin:200px 200px}
+.compass-ring-pulse{animation:outerRingPulse 2s ease-in-out infinite}
+
+/* Satellite */
+@keyframes orbit1{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes orbit2{from{transform:rotate(120deg)}to{transform:rotate(480deg)}}
+@keyframes orbit3{from{transform:rotate(240deg)}to{transform:rotate(600deg)}}
+@keyframes signalPulse{0%{opacity:.8;r:4}100%{opacity:0;r:20}}
+.sat1{animation:orbit1 6s linear infinite;transform-origin:200px 200px}
+.sat2{animation:orbit2 8s linear infinite;transform-origin:200px 200px}
+.sat3{animation:orbit3 10s linear infinite;transform-origin:200px 200px}
+
+/* Neural */
+@keyframes neuralPulse{0%,100%{r:4;opacity:.6}50%{r:6;opacity:1}}
+@keyframes dataFlow{0%{offset-distance:0%}100%{offset-distance:100%}}
+@keyframes connectionPulse{0%,100%{stroke-opacity:.1}50%{stroke-opacity:.5}}
+
+/* DNA */
+@keyframes dnaRotate{from{transform:rotateY(0deg)}to{transform:rotateY(360deg)}}
+.dna-container{perspective:600px}
+.dna-helix{animation:dnaRotate 6s linear infinite;transform-style:preserve-3d}
+
+/* Hexgrid */
+@keyframes hexWave{0%{opacity:.1;transform:scale(.95)}50%{opacity:.6;transform:scale(1)}100%{opacity:.1;transform:scale(.95)}}
+
+/* Trajectory */
+@keyframes missileMove{0%{offset-distance:0%}100%{offset-distance:100%}}
+@keyframes dashScroll{from{stroke-dashoffset:20}to{stroke-dashoffset:0}}
+.trajectory-dash{animation:dashScroll 1s linear infinite}
+
+/* Frequency */
+@keyframes freqBar{0%,100%{transform:scaleY(.2)}50%{transform:scaleY(1)}}
+
+/* Topo */
+@keyframes topoScan{from{transform:translateY(-100%)}to{transform:translateY(100%)}}
+</style>
+</head>
+<body>
+<h1>AXIOM SVG Animations</h1>
+<div class="subtitle">// ADVANCED VECTOR GRAPHICS ENGINE //</div>
+<div class="grid">
+
+<!-- 1. COMPASS ROSE -->
+<div class="panel">
+<div class="panel-title">01 // Rotating Compass Rose</div>
+<svg viewBox="0 0 400 400" id="compass-svg">
+<defs>
+<filter id="glow"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<!-- Outer rings -->
+<circle cx="200" cy="200" r="180" fill="none" stroke="#00e5ff" stroke-width=".3" opacity=".3"/>
+<circle cx="200" cy="200" r="185" fill="none" stroke="#00e5ff" stroke-width=".5" class="compass-ring-pulse"/>
+<circle cx="200" cy="200" r="190" fill="none" stroke="#00e5ff" stroke-width=".3" opacity=".2"/>
+<!-- Rotating outer ticks -->
+<g id="compass-outer" transform-origin="200 200">
+<circle cx="200" cy="200" r="170" fill="none" stroke="#00e5ff" stroke-width=".3" opacity=".2"/>
+</g>
+<!-- Degree ticks -->
+<g id="compass-ticks" filter="url(#glow)"></g>
+<!-- Cardinal markers -->
+<text x="200" y="45" text-anchor="middle" fill="#ff1744" font-size="16" font-family="Share Tech Mono" font-weight="bold">N</text>
+<text x="200" y="370" text-anchor="middle" fill="#00e5ff" font-size="14" font-family="Share Tech Mono">S</text>
+<text x="365" y="205" text-anchor="middle" fill="#00e5ff" font-size="14" font-family="Share Tech Mono">E</text>
+<text x="38" y="205" text-anchor="middle" fill="#00e5ff" font-size="14" font-family="Share Tech Mono">W</text>
+<!-- Inner circles -->
+<circle cx="200" cy="200" r="60" fill="none" stroke="#00e5ff" stroke-width=".5" opacity=".3"/>
+<circle cx="200" cy="200" r="30" fill="none" stroke="#ff9800" stroke-width=".5" opacity=".4"/>
+<!-- Needle -->
+<g id="compass-needle">
+<polygon points="200,80 195,200 205,200" fill="#ff1744" opacity=".8"/>
+<polygon points="200,320 195,200 205,200" fill="#00e5ff" opacity=".4"/>
+<circle cx="200" cy="200" r="5" fill="#ff9800"/>
+</g>
+<!-- Bearing readout -->
+<text x="200" y="205" text-anchor="middle" fill="#ff9800" font-size="10" font-family="Share Tech Mono" id="bearing-text">BRG 042</text>
+</svg>
+</div>
+
+<!-- 2. SATELLITE ORBIT TRACKER -->
+<div class="panel">
+<div class="panel-title">02 // Satellite Orbit Tracker</div>
+<svg viewBox="0 0 400 400" id="satellite-svg">
+<defs>
+<radialGradient id="earthGrad"><stop offset="0%" stop-color="#0a2a3a"/><stop offset="100%" stop-color="#051015"/></radialGradient>
+<filter id="glowSat"><feGaussianBlur stdDeviation="3" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<!-- Earth -->
+<circle cx="200" cy="200" r="50" fill="url(#earthGrad)" stroke="#00e676" stroke-width="1" opacity=".7"/>
+<circle cx="200" cy="200" r="52" fill="none" stroke="#00e676" stroke-width=".3" opacity=".3"/>
+<!-- Orbit 1 - equatorial -->
+<ellipse cx="200" cy="200" rx="120" ry="40" fill="none" stroke="#00e5ff" stroke-width=".5" opacity=".3" stroke-dasharray="4 4"/>
+<g class="sat1"><circle cx="320" cy="200" r="4" fill="#00e5ff" filter="url(#glowSat)"/></g>
+<!-- Orbit 2 - inclined -->
+<ellipse cx="200" cy="200" rx="150" ry="70" fill="none" stroke="#ff9800" stroke-width=".5" opacity=".3" stroke-dasharray="4 4" transform="rotate(-30 200 200)"/>
+<g class="sat2" style="transform-origin:200px 200px"><circle cx="350" cy="200" r="4" fill="#ff9800" filter="url(#glowSat)"/></g>
+<!-- Orbit 3 - polar -->
+<ellipse cx="200" cy="200" rx="100" ry="160" fill="none" stroke="#00e676" stroke-width=".5" opacity=".3" stroke-dasharray="4 4" transform="rotate(15 200 200)"/>
+<g class="sat3" style="transform-origin:200px 200px"><circle cx="300" cy="200" r="3" fill="#00e676" filter="url(#glowSat)"/></g>
+<!-- Signal cone -->
+<g class="sat1" style="transform-origin:200px 200px;opacity:.3">
+<polygon points="320,200 280,250 360,250" fill="none" stroke="#00e5ff" stroke-width=".5" stroke-dasharray="2 2"/>
+</g>
+<!-- Labels -->
+<text x="200" y="200" text-anchor="middle" dominant-baseline="middle" fill="#00e676" font-size="8" font-family="Share Tech Mono">EARTH</text>
+<text x="200" y="385" text-anchor="middle" fill="#00e5ff" font-size="9" font-family="Share Tech Mono" opacity=".6">SAT-A: LEO 408km | SAT-B: MEO 2000km | SAT-C: POLAR</text>
+</svg>
+</div>
+
+<!-- 3. NEURAL NETWORK -->
+<div class="panel">
+<div class="panel-title">03 // Neural Network Visualization</div>
+<svg viewBox="0 0 400 300" id="neural-svg"></svg>
+</div>
+
+<!-- 4. DNA HELIX -->
+<div class="panel">
+<div class="panel-title">04 // DNA Helix / Data Strand</div>
+<div class="dna-container" style="height:300px;display:flex;align-items:center;justify-content:center">
+<svg viewBox="0 0 400 300" id="dna-svg"></svg>
+</div>
+</div>
+
+<!-- 5. HEXAGONAL GRID -->
+<div class="panel">
+<div class="panel-title">05 // Holographic Hexagonal Grid</div>
+<svg viewBox="0 0 400 350" id="hex-svg"></svg>
+</div>
+
+<!-- 6. TRAJECTORY ARC -->
+<div class="panel">
+<div class="panel-title">06 // Missile Trajectory Arc</div>
+<svg viewBox="0 0 400 300" id="trajectory-svg">
+<defs><filter id="glowT"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<!-- Ground line -->
+<line x1="20" y1="260" x2="380" y2="260" stroke="#00e5ff" stroke-width=".3" opacity=".3"/>
+<!-- Grid -->
+<line x1="20" y1="200" x2="380" y2="200" stroke="#00e5ff" stroke-width=".1" opacity=".15"/>
+<line x1="20" y1="140" x2="380" y2="140" stroke="#00e5ff" stroke-width=".1" opacity=".15"/>
+<line x1="20" y1="80" x2="380" y2="80" stroke="#00e5ff" stroke-width=".1" opacity=".15"/>
+<!-- Trajectory path -->
+<path id="trajPath" d="M50,260 Q200,10 350,260" fill="none" stroke="#ff1744" stroke-width="1.5" stroke-dasharray="8 4" class="trajectory-dash" filter="url(#glowT)"/>
+<!-- Origin -->
+<circle cx="50" cy="260" r="6" fill="none" stroke="#00e676" stroke-width="1.5"/><circle cx="50" cy="260" r="2" fill="#00e676"/>
+<text x="50" y="278" text-anchor="middle" fill="#00e676" font-size="8" font-family="Share Tech Mono">ORIGIN</text>
+<!-- Target -->
+<circle cx="350" cy="260" r="8" fill="none" stroke="#ff1744" stroke-width="1" stroke-dasharray="3 3"><animateTransform attributeName="transform" type="rotate" values="0 350 260;360 350 260" dur="4s" repeatCount="indefinite"/></circle>
+<circle cx="350" cy="260" r="3" fill="#ff1744" opacity=".6"/>
+<text x="350" y="278" text-anchor="middle" fill="#ff1744" font-size="8" font-family="Share Tech Mono">TARGET</text>
+<!-- Altitude marker -->
+<line x1="200" y1="40" x2="200" y2="260" stroke="#ff9800" stroke-width=".5" stroke-dasharray="3 3" opacity=".4"/>
+<text x="210" y="45" fill="#ff9800" font-size="8" font-family="Share Tech Mono">ALT: 12,400m</text>
+<!-- Moving missile dot -->
+<circle r="4" fill="#ff1744" filter="url(#glowT)">
+<animateMotion dur="3s" repeatCount="indefinite" rotate="auto"><mpath href="#trajPath"/></animateMotion>
+</circle>
+<!-- Trail -->
+<circle r="2" fill="#ff9800" opacity=".4">
+<animateMotion dur="3s" repeatCount="indefinite" begin="-.15s"><mpath href="#trajPath"/></animateMotion>
+</circle>
+<circle r="1.5" fill="#ff9800" opacity=".2">
+<animateMotion dur="3s" repeatCount="indefinite" begin="-.3s"><mpath href="#trajPath"/></animateMotion>
+</circle>
+<!-- Range -->
+<text x="200" y="290" text-anchor="middle" fill="#00e5ff" font-size="9" font-family="Share Tech Mono" opacity=".6">RANGE: 4,820m | FLIGHT TIME: 14.2s | V0: 340m/s</text>
+</svg>
+</div>
+
+<!-- 7. FREQUENCY ANALYZER -->
+<div class="panel">
+<div class="panel-title">07 // Circular Frequency Analyzer</div>
+<svg viewBox="0 0 400 400" id="freq-svg"></svg>
+</div>
+
+<!-- 8. TOPOGRAPHIC MAP -->
+<div class="panel">
+<div class="panel-title">08 // Topographic Contour Map</div>
+<svg viewBox="0 0 400 350" id="topo-svg"></svg>
+</div>
+
+</div>
+
+<script>
+// === COMPASS TICKS ===
+(function(){
+const g=document.getElementById('compass-ticks');
+for(let i=0;i<360;i+=5){
+const len=i%90===0?20:i%30===0?14:i%10===0?10:6;
+const r1=160,r2=160-len;
+const a=i*Math.PI/180;
+const x1=200+r1*Math.sin(a),y1=200-r1*Math.cos(a);
+const x2=200+r2*Math.sin(a),y2=200-r2*Math.cos(a);
+const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+line.setAttribute('x1',x1);line.setAttribute('y1',y1);
+line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+line.setAttribute('stroke',i%90===0?'#ff1744':'#00e5ff');
+line.setAttribute('stroke-width',i%90===0?'1.5':i%30===0?'1':'.5');
+line.setAttribute('opacity',i%90===0?'1':'.5');
+g.appendChild(line);
+if(i%30===0&&i%90!==0){
+const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+const tr=130;
+t.setAttribute('x',200+tr*Math.sin(a));
+t.setAttribute('y',200-tr*Math.cos(a)+4);
+t.setAttribute('text-anchor','middle');t.setAttribute('fill','#00e5ff');
+t.setAttribute('font-size','8');t.setAttribute('font-family','Share Tech Mono');
+t.setAttribute('opacity','.6');t.textContent=i+'°';
+g.appendChild(t);
+}
+}
+// Animate bearing text
+const bt=document.getElementById('bearing-text');
+let brg=0;
+setInterval(()=>{brg=(brg+0.3)%360;bt.textContent='BRG '+String(Math.floor(brg)).padStart(3,'0')},50);
+})();
+
+// === NEURAL NETWORK ===
+(function(){
+const svg=document.getElementById('neural-svg');
+const ns='http://www.w3.org/2000/svg';
+const layers=[[50],[150,150],[250,250,250,250],[350,350],[450]];
+const yPositions=[[150],[90,210],[50,110,190,250],[100,200],[150]];
+const xSpacing=[60,140,220,300,380];
+const nodes=[];
+// Create connections first
+layers.forEach((layer,li)=>{
+if(li===0)return;
+const prev=layers[li-1];
+layer.forEach((_,ni)=>{
+prev.forEach((_,pi)=>{
+const line=document.createElementNS(ns,'line');
+line.setAttribute('x1',xSpacing[li-1]);line.setAttribute('y1',yPositions[li-1][pi]);
+line.setAttribute('x2',xSpacing[li]);line.setAttribute('y2',yPositions[li][ni]);
+line.setAttribute('stroke','#00e5ff');line.setAttribute('stroke-width','.4');
+line.setAttribute('opacity','.15');
+const anim=document.createElementNS(ns,'animate');
+anim.setAttribute('attributeName','stroke-opacity');
+anim.setAttribute('values','.05;.4;.05');
+anim.setAttribute('dur',(2+Math.random()*3)+'s');
+anim.setAttribute('repeatCount','indefinite');
+anim.setAttribute('begin',Math.random()*3+'s');
+line.appendChild(anim);
+svg.appendChild(line);
+// Data particle
+if(Math.random()>.5){
+const c=document.createElementNS(ns,'circle');
+c.setAttribute('r','1.5');c.setAttribute('fill','#ff9800');c.setAttribute('opacity','0');
+const ax=document.createElementNS(ns,'animate');
+ax.setAttribute('attributeName','cx');
+ax.setAttribute('values',xSpacing[li-1]+';'+xSpacing[li]);
+ax.setAttribute('dur',(1+Math.random()*2)+'s');ax.setAttribute('repeatCount','indefinite');
+ax.setAttribute('begin',Math.random()*4+'s');
+const ay=document.createElementNS(ns,'animate');
+ay.setAttribute('attributeName','cy');
+ay.setAttribute('values',yPositions[li-1][pi]+';'+yPositions[li][ni]);
+ay.setAttribute('dur',(1+Math.random()*2)+'s');ay.setAttribute('repeatCount','indefinite');
+ay.setAttribute('begin',ax.getAttribute('begin'));
+const ao=document.createElementNS(ns,'animate');
+ao.setAttribute('attributeName','opacity');ao.setAttribute('values','0;.8;0');
+ao.setAttribute('dur',ax.getAttribute('dur'));ao.setAttribute('repeatCount','indefinite');
+ao.setAttribute('begin',ax.getAttribute('begin'));
+c.appendChild(ax);c.appendChild(ay);c.appendChild(ao);
+svg.appendChild(c);
+}
+});
+});
+});
+// Create nodes
+layers.forEach((layer,li)=>{
+layer.forEach((_,ni)=>{
+const c=document.createElementNS(ns,'circle');
+c.setAttribute('cx',xSpacing[li]);c.setAttribute('cy',yPositions[li][ni]);
+c.setAttribute('r','5');c.setAttribute('fill','#050a0e');
+c.setAttribute('stroke','#00e5ff');c.setAttribute('stroke-width','1.5');
+const a=document.createElementNS(ns,'animate');
+a.setAttribute('attributeName','r');a.setAttribute('values','4;6;4');
+a.setAttribute('dur',(1.5+Math.random()*2)+'s');a.setAttribute('repeatCount','indefinite');
+c.appendChild(a);
+svg.appendChild(c);
+});
+});
+// Layer labels
+['INPUT','HIDDEN 1','HIDDEN 2','HIDDEN 3','OUTPUT'].forEach((l,i)=>{
+const t=document.createElementNS(ns,'text');
+t.setAttribute('x',xSpacing[i]);t.setAttribute('y',290);
+t.setAttribute('text-anchor','middle');t.setAttribute('fill','#ff9800');
+t.setAttribute('font-size','7');t.setAttribute('font-family','Share Tech Mono');
+t.setAttribute('opacity','.5');t.textContent=l;
+svg.appendChild(t);
+});
+})();
+
+// === DNA HELIX ===
+(function(){
+const svg=document.getElementById('dna-svg');
+const ns='http://www.w3.org/2000/svg';
+const steps=20;const w=400;const h=300;
+const amp=60;const cx=200;const cy=150;
+
+function drawFrame(t){
+svg.innerHTML='';
+for(let i=0;i<steps;i++){
+const phase=i/steps*Math.PI*4+t*0.02;
+const x=40+i*(320/steps);
+const y1=cy+Math.sin(phase)*amp;
+const y2=cy+Math.sin(phase+Math.PI)*amp;
+const z=Math.cos(phase);
+const z2=Math.cos(phase+Math.PI);
+// Rung
+if(i%2===0){
+const line=document.createElementNS(ns,'line');
+line.setAttribute('x1',x);line.setAttribute('y1',y1);
+line.setAttribute('x2',x);line.setAttribute('y2',y2);
+line.setAttribute('stroke','#ff9800');line.setAttribute('stroke-width','.8');
+line.setAttribute('opacity',.2+Math.abs(z)*.3);
+svg.appendChild(line);
+}
+// Strand 1
+const c1=document.createElementNS(ns,'circle');
+c1.setAttribute('cx',x);c1.setAttribute('cy',y1);
+c1.setAttribute('r',3+z*1.5);
+c1.setAttribute('fill',z>0?'#00e5ff':'rgba(0,229,255,.3)');
+c1.setAttribute('opacity',.4+z*.4);
+svg.appendChild(c1);
+// Strand 2
+const c2=document.createElementNS(ns,'circle');
+c2.setAttribute('cx',x);c2.setAttribute('cy',y2);
+c2.setAttribute('r',3+z2*1.5);
+c2.setAttribute('fill',z2>0?'#00e676':'rgba(0,230,118,.3)');
+c2.setAttribute('opacity',.4+z2*.4);
+svg.appendChild(c2);
+}
+// Connect strand dots
+for(let i=0;i<steps-1;i++){
+const phase=i/steps*Math.PI*4+t*0.02;
+const phase2=(i+1)/steps*Math.PI*4+t*0.02;
+const x1=40+i*(320/steps),x2=40+(i+1)*(320/steps);
+[[Math.sin(phase),Math.sin(phase2),'#00e5ff'],[Math.sin(phase+Math.PI),Math.sin(phase2+Math.PI),'#00e676']].forEach(([s1,s2,col])=>{
+const line=document.createElementNS(ns,'line');
+line.setAttribute('x1',x1);line.setAttribute('y1',cy+s1*amp);
+line.setAttribute('x2',x2);line.setAttribute('y2',cy+s2*amp);
+line.setAttribute('stroke',col);line.setAttribute('stroke-width','.8');line.setAttribute('opacity','.3');
+svg.appendChild(line);
+});
+}
+// Data packet
+const pi=((t*0.05)%steps);
+const idx=Math.floor(pi);
+if(idx<steps){
+const phase=idx/steps*Math.PI*4+t*0.02;
+const x=40+idx*(320/steps);
+const y=cy+Math.sin(phase)*amp;
+const c=document.createElementNS(ns,'circle');
+c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r','6');
+c.setAttribute('fill','none');c.setAttribute('stroke','#ffd740');c.setAttribute('stroke-width','2');c.setAttribute('opacity','.8');
+svg.appendChild(c);
+}
+// Label
+const label=document.createElementNS(ns,'text');
+label.setAttribute('x','200');label.setAttribute('y','290');
+label.setAttribute('text-anchor','middle');label.setAttribute('fill','#00e5ff');
+label.setAttribute('font-size','9');label.setAttribute('font-family','Share Tech Mono');
+label.setAttribute('opacity','.5');label.textContent='DATA STRAND // SEQUENCE ACTIVE // '+Math.floor(t/10)%999+' PACKETS';
+svg.appendChild(label);
+}
+let t=0;
+function animate(){t++;drawFrame(t);requestAnimationFrame(animate)}
+animate();
+})();
+
+// === HEXAGONAL GRID ===
+(function(){
+const svg=document.getElementById('hex-svg');
+const ns='http://www.w3.org/2000/svg';
+const size=22;const cx=200;const cy=175;
+const hexes=[];
+
+function hexPoints(x,y,s){
+let p='';
+for(let i=0;i<6;i++){const a=Math.PI/3*i-Math.PI/6;p+=`${x+s*Math.cos(a)},${y+s*Math.sin(a)} `}
+return p.trim();
+}
+
+for(let q=-5;q<=5;q++){
+for(let r=-4;r<=4;r++){
+const x=cx+size*1.73*(q+r/2);
+const y=cy+size*1.5*r;
+if(Math.sqrt((x-cx)**2+(y-cy)**2)>170)continue;
+hexes.push({x,y,q,r,dist:Math.sqrt((x-cx)**2+(y-cy)**2)});
+}
+}
+
+function drawFrame(t){
+svg.innerHTML='';
+hexes.forEach(h=>{
+const wave=Math.sin(h.dist*0.03-t*0.04)*0.5+0.5;
+const active=Math.sin(h.q*0.7+h.r*1.1+t*0.02)>0.7;
+const poly=document.createElementNS(ns,'polygon');
+poly.setAttribute('points',hexPoints(h.x,h.y,size-2));
+poly.setAttribute('fill',active?'rgba(0,229,255,.15)':'none');
+poly.setAttribute('stroke',active?'#00e5ff':'#00e5ff');
+poly.setAttribute('stroke-width',active?'1.2':'.3');
+poly.setAttribute('opacity',.1+wave*.5);
+svg.appendChild(poly);
+if(active){
+const c=document.createElementNS(ns,'circle');
+c.setAttribute('cx',h.x);c.setAttribute('cy',h.y);c.setAttribute('r','2');
+c.setAttribute('fill','#00e5ff');c.setAttribute('opacity',.5+wave*.5);
+svg.appendChild(c);
+}
+});
+const label=document.createElementNS(ns,'text');
+label.setAttribute('x','200');label.setAttribute('y','340');
+label.setAttribute('text-anchor','middle');label.setAttribute('fill','#ff9800');
+label.setAttribute('font-size','9');label.setAttribute('font-family','Share Tech Mono');
+label.setAttribute('opacity','.5');
+label.textContent='GRID NODES: '+hexes.length+' | ACTIVE: '+hexes.filter((_,i)=>Math.sin(_.q*0.7+_.r*1.1+t*0.02)>0.7).length;
+svg.appendChild(label);
+}
+let t=0;
+function animate(){t++;drawFrame(t);requestAnimationFrame(animate)}
+animate();
+})();
+
+// === CIRCULAR FREQUENCY ANALYZER ===
+(function(){
+const svg=document.getElementById('freq-svg');
+const ns='http://www.w3.org/2000/svg';
+const bars=64;const cx=200;const cy=200;const r1=60;const r2=160;
+
+function drawFrame(t){
+svg.innerHTML='';
+// Outer ring
+const outerC=document.createElementNS(ns,'circle');
+outerC.setAttribute('cx',cx);outerC.setAttribute('cy',cy);outerC.setAttribute('r',r2+5);
+outerC.setAttribute('fill','none');outerC.setAttribute('stroke','#00e5ff');
+outerC.setAttribute('stroke-width','.3');outerC.setAttribute('opacity','.2');
+svg.appendChild(outerC);
+const innerC=document.createElementNS(ns,'circle');
+innerC.setAttribute('cx',cx);innerC.setAttribute('cy',cy);innerC.setAttribute('r',r1-5);
+innerC.setAttribute('fill','none');innerC.setAttribute('stroke','#00e5ff');
+innerC.setAttribute('stroke-width','.5');innerC.setAttribute('opacity','.3');
+svg.appendChild(innerC);
+
+for(let i=0;i<bars;i++){
+const a=i/bars*Math.PI*2-Math.PI/2;
+const val=0.3+0.7*(Math.sin(i*0.4+t*0.06)**2*Math.cos(i*0.2-t*0.03)**2+Math.sin(i*0.15+t*0.04)*0.3);
+const len=r1+(r2-r1)*Math.max(0,Math.min(1,val));
+const x1=cx+r1*Math.cos(a),y1=cy+r1*Math.sin(a);
+const x2=cx+len*Math.cos(a),y2=cy+len*Math.sin(a);
+const hue=val>.7?'#ff1744':val>.4?'#ff9800':'#00e5ff';
+const line=document.createElementNS(ns,'line');
+line.setAttribute('x1',x1);line.setAttribute('y1',y1);
+line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+line.setAttribute('stroke',hue);line.setAttribute('stroke-width','3');
+line.setAttribute('opacity',.4+val*.5);
+line.setAttribute('stroke-linecap','round');
+svg.appendChild(line);
+}
+// Center text
+const t1=document.createElementNS(ns,'text');
+t1.setAttribute('x',cx);t1.setAttribute('y',cy-5);t1.setAttribute('text-anchor','middle');
+t1.setAttribute('fill','#00e5ff');t1.setAttribute('font-size','12');t1.setAttribute('font-family','Share Tech Mono');
+t1.textContent='FREQ';svg.appendChild(t1);
+const t2=document.createElementNS(ns,'text');
+t2.setAttribute('x',cx);t2.setAttribute('y',cy+10);t2.setAttribute('text-anchor','middle');
+t2.setAttribute('fill','#ff9800');t2.setAttribute('font-size','9');t2.setAttribute('font-family','Share Tech Mono');
+t2.textContent=Math.floor(200+Math.sin(t*.02)*50)+' Hz';svg.appendChild(t2);
+}
+let t=0;
+function animate(){t++;drawFrame(t);requestAnimationFrame(animate)}
+animate();
+})();
+
+// === TOPOGRAPHIC CONTOUR MAP ===
+(function(){
+const svg=document.getElementById('topo-svg');
+const ns='http://www.w3.org/2000/svg';
+
+// Generate contour paths
+const contours=[
+{d:'M200,175 C230,150 270,155 280,175 C290,195 275,220 250,225 C225,230 190,220 180,200 C170,180 175,175 200,175Z',elev:'2400m'},
+{d:'M200,165 C240,130 290,140 305,175 C320,210 295,250 255,255 C215,260 170,240 160,200 C150,160 165,155 200,165Z',elev:'1800m'},
+{d:'M200,150 C250,110 310,125 330,175 C350,225 315,280 260,285 C205,290 150,260 135,200 C120,140 155,135 200,150Z',elev:'1200m'},
+{d:'M195,135 C260,90 335,110 355,175 C375,240 335,305 265,315 C195,325 125,285 110,200 C95,115 140,105 195,135Z',elev:'600m'},
+{d:'M190,120 C270,65 360,95 380,180 C400,265 355,335 270,345 C185,355 95,305 80,200 C65,95 125,80 190,120Z',elev:'200m'},
+];
+
+const colors=['#ff1744','#ff9800','#ffd740','#00e676','#00e5ff'];
+
+contours.forEach((c,i)=>{
+const path=document.createElementNS(ns,'path');
+path.setAttribute('d',c.d);path.setAttribute('fill','none');
+path.setAttribute('stroke',colors[i]);path.setAttribute('stroke-width',i===0?'1.5':'.8');
+path.setAttribute('opacity',.3+i*.1);
+svg.appendChild(path);
+});
+// Elevation labels
+[[215,175,'2400m','#ff1744'],[270,210,'1800m','#ff9800'],[305,250,'1200m','#ffd740'],[150,250,'600m','#00e676'],[100,290,'200m','#00e5ff']].forEach(([x,y,t,c])=>{
+const text=document.createElementNS(ns,'text');
+text.setAttribute('x',x);text.setAttribute('y',y);text.setAttribute('fill',c);
+text.setAttribute('font-size','8');text.setAttribute('font-family','Share Tech Mono');
+text.setAttribute('opacity','.6');text.textContent=t;
+svg.appendChild(text);
+});
+// Peak marker
+const peak=document.createElementNS(ns,'polygon');
+peak.setAttribute('points','200,160 195,172 205,172');peak.setAttribute('fill','#ff1744');
+svg.appendChild(peak);
+const pt=document.createElementNS(ns,'text');
+pt.setAttribute('x','200');pt.setAttribute('y','156');pt.setAttribute('text-anchor','middle');
+pt.setAttribute('fill','#ff1744');pt.setAttribute('font-size','8');pt.setAttribute('font-family','Share Tech Mono');
+pt.textContent='PEAK';svg.appendChild(pt);
+
+// Scan line
+const scanLine=document.createElementNS(ns,'line');
+scanLine.setAttribute('x1','60');scanLine.setAttribute('x2','340');
+scanLine.setAttribute('stroke','#00e5ff');scanLine.setAttribute('stroke-width','1');
+scanLine.setAttribute('opacity','.4');
+svg.appendChild(scanLine);
+let sy=50;
+function animScan(){
+sy+=0.5;if(sy>320)sy=50;
+scanLine.setAttribute('y1',sy);scanLine.setAttribute('y2',sy);
+// Glow near scan
+contours.forEach((c,i)=>{
+const path=svg.querySelectorAll('path')[i];
+if(!path)return;
+const nearScan=Math.abs(175+i*20-sy)<30;
+path.setAttribute('opacity',nearScan?.8:(.3+i*.1));
+path.setAttribute('stroke-width',nearScan?'2':(i===0?'1.5':'.8'));
+});
+requestAnimationFrame(animScan);
+}
+animScan();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM HUD — Navigation Elements</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --hud-bg: #050a0e;
+  --hud-cyan: #00e5ff;
+  --hud-amber: #ff9800;
+  --hud-red: #ff1744;
+  --hud-green: #00e676;
+  --hud-gold: #ffd740;
+  --hud-text: #c8dce8;
+  --hud-text-dim: #4a6a7a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--hud-bg);
+  color: var(--hud-text);
+  font-family: 'Share Tech Mono', monospace;
+  padding: 32px;
+  line-height: 1.6;
+}
+h1 { color: var(--hud-cyan); font-size: 14px; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px; text-shadow: 0 0 12px rgba(0,229,255,0.5); }
+.subtitle { color: var(--hud-text-dim); font-size: 11px; letter-spacing: 2px; margin-bottom: 40px; text-transform: uppercase; }
+.section-label { color: var(--hud-text-dim); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px; }
+.mb48 { margin-bottom: 48px; }
+.demo-area { padding: 20px; border: 1px solid rgba(0,229,255,0.08); background: rgba(0,229,255,0.01); }
+
+/* ── TAB BAR ── */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(0,229,255,0.15);
+}
+.tab-item {
+  padding: 10px 20px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--hud-text-dim);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s, background 0.2s;
+  user-select: none;
+}
+.tab-item:hover {
+  color: var(--hud-text);
+  background: rgba(0,229,255,0.04);
+}
+.tab-item.active {
+  color: var(--hud-cyan);
+}
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  background: var(--hud-cyan);
+  box-shadow: 0 0 8px rgba(0,229,255,0.5);
+}
+/* Bracket underline variant */
+.tab-item.active::before {
+  content: '[';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  color: var(--hud-cyan);
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.5;
+}
+.tab-item.active .bracket-r {
+  display: none; /* using CSS pseudo instead */
+}
+.tab-item .tab-count {
+  font-size: 9px;
+  color: var(--hud-bg);
+  background: var(--hud-cyan);
+  padding: 1px 5px;
+  margin-left: 6px;
+  border-radius: 1px;
+}
+
+/* ── BREADCRUMB ── */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-size: 11px;
+  padding: 10px 0;
+}
+.bread-item {
+  color: var(--hud-text-dim);
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.15s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.bread-item:hover { color: var(--hud-cyan); }
+.bread-item.current { color: var(--hud-cyan); cursor: default; }
+.bread-sep {
+  color: var(--hud-text-dim);
+  opacity: 0.4;
+  font-size: 10px;
+  padding: 0 2px;
+}
+.bread-sep::after { content: '\25B6'; }
+
+/* ── SIDEBAR NAV ── */
+.sidebar-nav {
+  width: 240px;
+  border: 1px solid rgba(0,229,255,0.12);
+  background: rgba(0,229,255,0.02);
+}
+.sidebar-header {
+  padding: 14px 16px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--hud-cyan);
+  border-bottom: 1px solid rgba(0,229,255,0.1);
+  background: rgba(0,229,255,0.04);
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 11px;
+  color: var(--hud-text-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  border-left: 2px solid transparent;
+}
+.nav-item:hover {
+  color: var(--hud-text);
+  background: rgba(0,229,255,0.04);
+}
+.nav-item.active {
+  color: var(--hud-cyan);
+  background: rgba(0,229,255,0.06);
+  border-left-color: var(--hud-cyan);
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--hud-cyan);
+  box-shadow: 0 0 8px var(--hud-cyan);
+}
+.nav-icon { font-size: 12px; width: 16px; text-align: center; }
+.nav-badge {
+  margin-left: auto;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 1px;
+}
+.nav-badge.cyan { background: rgba(0,229,255,0.15); color: var(--hud-cyan); }
+.nav-badge.red { background: rgba(255,23,68,0.15); color: var(--hud-red); }
+.nav-badge.amber { background: rgba(255,152,0,0.15); color: var(--hud-amber); }
+.nav-group-label {
+  padding: 12px 16px 4px;
+  font-size: 9px;
+  color: var(--hud-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.6;
+}
+
+/* ── COMMAND PALETTE ── */
+.cmd-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5,10,14,0.85);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+.cmd-overlay.show { display: flex; }
+.cmd-palette {
+  width: 520px;
+  border: 1px solid rgba(0,229,255,0.25);
+  background: #0a1218;
+  box-shadow: 0 0 60px rgba(0,229,255,0.1), 0 20px 60px rgba(0,0,0,0.5);
+}
+.cmd-input-wrap {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,229,255,0.15);
+  gap: 10px;
+}
+.cmd-prompt { color: var(--hud-cyan); font-size: 14px; }
+.cmd-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--hud-text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  caret-color: var(--hud-cyan);
+}
+.cmd-input::placeholder { color: var(--hud-text-dim); }
+.cmd-shortcut {
+  font-size: 9px;
+  color: var(--hud-text-dim);
+  padding: 2px 6px;
+  border: 1px solid rgba(0,229,255,0.15);
+  border-radius: 2px;
+}
+.cmd-results { max-height: 300px; overflow-y: auto; }
+.cmd-results::-webkit-scrollbar { width: 3px; }
+.cmd-results::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.2); }
+.cmd-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.1s;
+  font-size: 12px;
+}
+.cmd-result-item:hover, .cmd-result-item.selected {
+  background: rgba(0,229,255,0.08);
+}
+.cmd-result-item .cmd-icon { color: var(--hud-text-dim); font-size: 11px; width: 18px; text-align: center; }
+.cmd-result-item .cmd-label { color: var(--hud-text); flex: 1; }
+.cmd-result-item .cmd-hint { color: var(--hud-text-dim); font-size: 10px; }
+.cmd-footer {
+  padding: 8px 16px;
+  border-top: 1px solid rgba(0,229,255,0.08);
+  display: flex;
+  gap: 16px;
+  font-size: 9px;
+  color: var(--hud-text-dim);
+}
+.cmd-footer kbd { padding: 1px 5px; border: 1px solid rgba(0,229,255,0.15); border-radius: 2px; font-family: inherit; }
+
+/* ── PAGINATION ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.page-item {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--hud-text-dim);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+.page-item:hover {
+  color: var(--hud-text);
+  border-color: rgba(0,229,255,0.15);
+  background: rgba(0,229,255,0.04);
+}
+.page-item.active {
+  color: var(--hud-cyan);
+  border-color: var(--hud-cyan);
+  background: rgba(0,229,255,0.08);
+  box-shadow: 0 0 8px rgba(0,229,255,0.15);
+}
+.page-item.nav-arrow { font-size: 10px; }
+.page-bracket { color: var(--hud-text-dim); opacity: 0.3; font-size: 16px; padding: 0 4px; }
+
+/* ── DROPDOWN ── */
+.hud-select-wrap {
+  position: relative;
+  width: 220px;
+}
+.hud-select {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(0,229,255,0.04);
+  border: 1px solid rgba(0,229,255,0.2);
+  color: var(--hud-text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  transition: border-color 0.2s;
+}
+.hud-select:hover { border-color: rgba(0,229,255,0.4); }
+.hud-select.open { border-color: var(--hud-cyan); box-shadow: 0 0 12px rgba(0,229,255,0.1); }
+.hud-select .arrow { font-size: 8px; color: var(--hud-text-dim); transition: transform 0.2s; }
+.hud-select.open .arrow { transform: rotate(180deg); }
+.hud-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #0a1218;
+  border: 1px solid rgba(0,229,255,0.2);
+  border-top: none;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  z-index: 10;
+}
+.hud-dropdown.open { max-height: 200px; }
+.hud-option {
+  padding: 8px 14px;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--hud-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.1s;
+}
+.hud-option:hover {
+  background: rgba(0,229,255,0.08);
+  color: var(--hud-cyan);
+}
+.hud-option.selected {
+  color: var(--hud-cyan);
+  border-left: 2px solid var(--hud-cyan);
+}
+
+/* ── TOGGLE SWITCH ── */
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.toggle-track {
+  width: 44px;
+  height: 22px;
+  border-radius: 11px;
+  background: rgba(0,229,255,0.08);
+  border: 1px solid rgba(0,229,255,0.2);
+  position: relative;
+  transition: all 0.3s;
+}
+.toggle-track .toggle-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--hud-text-dim);
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.toggle-wrap.on .toggle-track {
+  background: rgba(0,229,255,0.15);
+  border-color: var(--hud-cyan);
+  box-shadow: 0 0 10px rgba(0,229,255,0.2);
+}
+.toggle-wrap.on .toggle-thumb {
+  background: var(--hud-cyan);
+  left: 24px;
+  box-shadow: 0 0 8px var(--hud-cyan);
+}
+.toggle-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.toggle-status {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  width: 28px;
+}
+.toggle-wrap.on .toggle-status { color: var(--hud-green); }
+.toggle-wrap:not(.on) .toggle-status { color: var(--hud-text-dim); }
+</style>
+</head>
+<body>
+
+<h1>AXIOM Intelligence HUD</h1>
+<p class="subtitle">Component Library // Navigation // v1.0</p>
+
+<!-- TAB BAR -->
+<p class="section-label">01 // Tab Bar</p>
+<div class="mb48">
+  <div class="tab-bar" id="tabBar1">
+    <div class="tab-item active" onclick="setTab(this)">Overview</div>
+    <div class="tab-item" onclick="setTab(this)">Intelligence</div>
+    <div class="tab-item" onclick="setTab(this)">Operations<span class="tab-count">3</span></div>
+    <div class="tab-item" onclick="setTab(this)">Comms</div>
+    <div class="tab-item" onclick="setTab(this)">Assets</div>
+    <div class="tab-item" onclick="setTab(this)">Logs</div>
+  </div>
+</div>
+
+<!-- BREADCRUMB -->
+<p class="section-label">02 // Breadcrumb Trail</p>
+<div class="mb48">
+  <div class="breadcrumb">
+    <span class="bread-item">AXIOM</span>
+    <span class="bread-sep"></span>
+    <span class="bread-item">Sector Alpha</span>
+    <span class="bread-sep"></span>
+    <span class="bread-item">Unit A-1</span>
+    <span class="bread-sep"></span>
+    <span class="bread-item current">Agent Phantom</span>
+  </div>
+</div>
+
+<!-- SIDEBAR NAV -->
+<p class="section-label">03 // Sidebar Navigation</p>
+<div class="mb48" style="display:flex; gap:24px;">
+  <div class="sidebar-nav">
+    <div class="sidebar-header">// Operations</div>
+    <div class="nav-group-label">Primary</div>
+    <div class="nav-item active" onclick="setNav(this)">
+      <span class="nav-icon">&#9670;</span>Dashboard
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon">&#9673;</span>Intelligence
+      <span class="nav-badge cyan">12</span>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon">&#9654;</span>Operations
+      <span class="nav-badge red">!</span>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon">&#8962;</span>Assets
+    </div>
+    <div class="nav-group-label">System</div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon">&#9881;</span>Configuration
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon">&#9888;</span>Alerts
+      <span class="nav-badge amber">7</span>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon">&#9783;</span>Logs
+    </div>
+  </div>
+  <div class="demo-area" style="flex:1;">
+    <div style="color:var(--hud-text-dim);font-size:11px;text-transform:uppercase;letter-spacing:2px;">Content Area</div>
+    <div style="margin-top:12px;font-size:12px;">Active panel content renders here based on sidebar selection.</div>
+  </div>
+</div>
+
+<!-- COMMAND PALETTE TRIGGER -->
+<p class="section-label">04 // Command Palette</p>
+<div class="mb48">
+  <div style="font-size:11px;color:var(--hud-text-dim);margin-bottom:12px;">Press <kbd style="padding:2px 8px;border:1px solid rgba(0,229,255,0.2);border-radius:2px;font-family:inherit;color:var(--hud-cyan);">\u2318 K</kbd> or click below to open</div>
+  <button onclick="document.getElementById('cmdOverlay').classList.add('show');document.getElementById('cmdInput').focus();" style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);color:var(--hud-cyan);font-family:'Share Tech Mono',monospace;font-size:11px;padding:8px 16px;cursor:pointer;text-transform:uppercase;letter-spacing:2px;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--hud-cyan)';this.style.boxShadow='0 0 12px rgba(0,229,255,0.15)'" onmouseout="this.style.borderColor='rgba(0,229,255,0.2)';this.style.boxShadow='none'">Open Command Palette</button>
+</div>
+
+<div class="cmd-overlay" id="cmdOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="cmd-palette">
+    <div class="cmd-input-wrap">
+      <span class="cmd-prompt">&gt;</span>
+      <input class="cmd-input" id="cmdInput" type="text" placeholder="Type a command or search..." autofocus>
+      <span class="cmd-shortcut">ESC</span>
+    </div>
+    <div class="cmd-results">
+      <div class="cmd-result-item selected"><span class="cmd-icon">&#9654;</span><span class="cmd-label">Execute Mission Plan</span><span class="cmd-hint">operations</span></div>
+      <div class="cmd-result-item"><span class="cmd-icon">&#9673;</span><span class="cmd-label">View Intelligence Feed</span><span class="cmd-hint">intel</span></div>
+      <div class="cmd-result-item"><span class="cmd-icon">&#9881;</span><span class="cmd-label">System Configuration</span><span class="cmd-hint">settings</span></div>
+      <div class="cmd-result-item"><span class="cmd-icon">&#9888;</span><span class="cmd-label">Review Active Alerts</span><span class="cmd-hint">alerts</span></div>
+      <div class="cmd-result-item"><span class="cmd-icon">&#9783;</span><span class="cmd-label">Access Log Archive</span><span class="cmd-hint">logs</span></div>
+      <div class="cmd-result-item"><span class="cmd-icon">&#8962;</span><span class="cmd-label">Asset Inventory</span><span class="cmd-hint">assets</span></div>
+    </div>
+    <div class="cmd-footer">
+      <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate</span>
+      <span><kbd>Enter</kbd> Execute</span>
+      <span><kbd>Esc</kbd> Close</span>
+    </div>
+  </div>
+</div>
+
+<!-- PAGINATION -->
+<p class="section-label">05 // Pagination</p>
+<div class="mb48">
+  <div class="pagination" id="pagination">
+    <span class="page-bracket">[</span>
+    <div class="page-item nav-arrow" onclick="paginate(this)">&laquo;</div>
+    <div class="page-item" onclick="paginate(this)">1</div>
+    <div class="page-item active" onclick="paginate(this)">2</div>
+    <div class="page-item" onclick="paginate(this)">3</div>
+    <div class="page-item" onclick="paginate(this)">4</div>
+    <div class="page-item" onclick="paginate(this)">5</div>
+    <div class="page-item nav-arrow" onclick="paginate(this)">&raquo;</div>
+    <span class="page-bracket">]</span>
+  </div>
+  <div style="margin-top:8px;font-size:10px;color:var(--hud-text-dim);">PAGE 2 OF 5 // 47 RECORDS</div>
+</div>
+
+<!-- DROPDOWN -->
+<p class="section-label">06 // Dropdown / Select</p>
+<div class="mb48" style="display:flex;gap:24px;flex-wrap:wrap;">
+  <div class="hud-select-wrap">
+    <div class="hud-select" onclick="toggleDropdown(this)">
+      <span>Sector Alpha</span>
+      <span class="arrow">&#9660;</span>
+    </div>
+    <div class="hud-dropdown">
+      <div class="hud-option selected" onclick="selectOption(this)">Sector Alpha</div>
+      <div class="hud-option" onclick="selectOption(this)">Sector Bravo</div>
+      <div class="hud-option" onclick="selectOption(this)">Sector Charlie</div>
+      <div class="hud-option" onclick="selectOption(this)">Sector Delta</div>
+      <div class="hud-option" onclick="selectOption(this)">All Sectors</div>
+    </div>
+  </div>
+  <div class="hud-select-wrap">
+    <div class="hud-select" onclick="toggleDropdown(this)">
+      <span>Priority: High</span>
+      <span class="arrow">&#9660;</span>
+    </div>
+    <div class="hud-dropdown">
+      <div class="hud-option" onclick="selectOption(this)">Priority: Critical</div>
+      <div class="hud-option selected" onclick="selectOption(this)">Priority: High</div>
+      <div class="hud-option" onclick="selectOption(this)">Priority: Medium</div>
+      <div class="hud-option" onclick="selectOption(this)">Priority: Low</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOGGLE SWITCHES -->
+<p class="section-label">07 // Toggle Switches</p>
+<div class="mb48" style="display:flex;flex-direction:column;gap:16px;">
+  <div class="toggle-wrap on" onclick="this.classList.toggle('on');updateToggle(this)">
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span class="toggle-label">Active Defense</span>
+    <span class="toggle-status">ON</span>
+  </div>
+  <div class="toggle-wrap on" onclick="this.classList.toggle('on');updateToggle(this)">
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span class="toggle-label">Auto-Tracking</span>
+    <span class="toggle-status">ON</span>
+  </div>
+  <div class="toggle-wrap" onclick="this.classList.toggle('on');updateToggle(this)">
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span class="toggle-label">Stealth Mode</span>
+    <span class="toggle-status">OFF</span>
+  </div>
+  <div class="toggle-wrap on" onclick="this.classList.toggle('on');updateToggle(this)">
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span class="toggle-label">Broadcast</span>
+    <span class="toggle-status">ON</span>
+  </div>
+</div>
+
+<script>
+// Tab switching
+function setTab(el) {
+  el.parentElement.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Nav switching
+function setNav(el) {
+  el.closest('.sidebar-nav').querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Pagination
+function paginate(el) {
+  if (el.classList.contains('nav-arrow')) return;
+  el.parentElement.querySelectorAll('.page-item:not(.nav-arrow)').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Dropdown
+function toggleDropdown(el) {
+  const wasOpen = el.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.hud-select').forEach(s => s.classList.remove('open'));
+  document.querySelectorAll('.hud-dropdown').forEach(d => d.classList.remove('open'));
+  if (!wasOpen) {
+    el.classList.add('open');
+    el.nextElementSibling.classList.add('open');
+  }
+}
+function selectOption(el) {
+  const dropdown = el.parentElement;
+  const select = dropdown.previousElementSibling;
+  dropdown.querySelectorAll('.hud-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  select.querySelector('span').textContent = el.textContent;
+  select.classList.remove('open');
+  dropdown.classList.remove('open');
+}
+
+// Toggle
+function updateToggle(el) {
+  const status = el.querySelector('.toggle-status');
+  status.textContent = el.classList.contains('on') ? 'ON' : 'OFF';
+}
+
+// Command palette keyboard
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('cmdOverlay').classList.add('show');
+    document.getElementById('cmdInput').focus();
+  }
+  if (e.key === 'Escape') {
+    document.getElementById('cmdOverlay').classList.remove('show');
+  }
+});
+
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.hud-select-wrap')) {
+    document.querySelectorAll('.hud-select').forEach(s => s.classList.remove('open'));
+    document.querySelectorAll('.hud-dropdown').forEach(d => d.classList.remove('open'));
+  }
+});
+</script>
+</body>
+</html>

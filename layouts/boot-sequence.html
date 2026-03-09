@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM // BOOT SEQUENCE</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --hud-bg: #050a0e;
+  --hud-cyan: #00e5ff;
+  --hud-amber: #ff9800;
+  --hud-red: #ff1744;
+  --hud-green: #00e676;
+  --hud-gold: #ffd740;
+  --hud-text: #c8dce8;
+  --hud-text-dim: #4a6a7a;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--hud-bg); font-family: 'Share Tech Mono', monospace; }
+
+#boot-screen {
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--hud-bg);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 1.5s ease;
+}
+#boot-screen.fade-out { opacity: 0; pointer-events: none; }
+
+.boot-container {
+  width: 700px; max-width: 90vw;
+  position: relative;
+}
+
+/* Scanline overlay */
+#boot-screen::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,229,255,0.015) 2px,
+    rgba(0,229,255,0.015) 4px
+  );
+  pointer-events: none;
+  z-index: 101;
+}
+
+/* CRT flicker */
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.8; }
+  94% { opacity: 1; }
+}
+.boot-container { animation: flicker 4s infinite; }
+
+.boot-line {
+  color: var(--hud-cyan);
+  font-size: 14px;
+  line-height: 1.8;
+  white-space: pre;
+  opacity: 0;
+  transform: translateX(-5px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+.boot-line.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.boot-line.header {
+  font-size: 18px;
+  color: var(--hud-gold);
+  margin-bottom: 8px;
+  text-shadow: 0 0 20px rgba(255,215,64,0.4);
+}
+.boot-line .status-ok { color: var(--hud-green); text-shadow: 0 0 8px rgba(0,230,118,0.5); }
+.boot-line .status-standby { color: var(--hud-amber); text-shadow: 0 0 8px rgba(255,152,0,0.5); }
+.boot-line.model-line { color: var(--hud-amber); margin-top: 12px; }
+.boot-line.nominal {
+  color: var(--hud-green);
+  font-size: 16px;
+  margin-top: 16px;
+  text-shadow: 0 0 30px rgba(0,230,118,0.6);
+}
+.boot-line.welcome {
+  color: var(--hud-cyan);
+  font-size: 22px;
+  margin-top: 4px;
+  text-shadow: 0 0 40px rgba(0,229,255,0.6);
+}
+
+.progress-bar-track {
+  width: 300px;
+  height: 16px;
+  border: 1px solid var(--hud-cyan);
+  margin: 4px 0;
+  position: relative;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.progress-bar-track.visible { opacity: 1; }
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--hud-cyan), var(--hud-green));
+  box-shadow: 0 0 15px rgba(0,229,255,0.5);
+  transition: width 2s ease-in-out;
+}
+.progress-pct {
+  position: absolute; right: -50px; top: 0;
+  color: var(--hud-cyan); font-size: 14px;
+}
+
+/* Corner frame */
+.frame-corner {
+  position: fixed; width: 40px; height: 40px;
+  border-color: var(--hud-cyan);
+  border-style: solid;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.frame-corner.visible { opacity: 0.4; }
+.fc-tl { top: 20px; left: 20px; border-width: 2px 0 0 2px; }
+.fc-tr { top: 20px; right: 20px; border-width: 2px 2px 0 0; }
+.fc-bl { bottom: 20px; left: 20px; border-width: 0 0 2px 2px; }
+.fc-br { bottom: 20px; right: 20px; border-width: 0 2px 2px 0; }
+
+/* HUD reveal */
+#hud-reveal {
+  position: fixed; inset: 0;
+  background: var(--hud-bg);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 1s;
+}
+#hud-reveal.show { opacity: 1; }
+.hud-ready {
+  font-size: 28px;
+  color: var(--hud-cyan);
+  text-shadow: 0 0 60px rgba(0,229,255,0.4);
+  letter-spacing: 8px;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { text-shadow: 0 0 20px rgba(0,229,255,0.3); }
+  50% { text-shadow: 0 0 60px rgba(0,229,255,0.7), 0 0 120px rgba(0,229,255,0.3); }
+}
+
+/* Cursor blink */
+.cursor {
+  display: inline-block;
+  width: 10px; height: 16px;
+  background: var(--hud-cyan);
+  animation: blink 0.6s step-end infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+@keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+
+<div class="frame-corner fc-tl"></div>
+<div class="frame-corner fc-tr"></div>
+<div class="frame-corner fc-bl"></div>
+<div class="frame-corner fc-br"></div>
+
+<div id="boot-screen">
+  <div class="boot-container" id="boot"></div>
+</div>
+
+<div id="hud-reveal">
+  <div class="hud-ready">AXIOM COMMAND INTERFACE READY</div>
+</div>
+
+<script>
+const lines = [
+  { text: '[AXIOM INTELLIGENCE SYSTEM v4.2.1]', cls: 'header', delay: 600 },
+  { text: 'INITIALIZING CORE MODULES...', cls: '', delay: 800 },
+  { text: '\u251C\u2500\u2500 NEURAL ENGINE ........... <span class="status-ok">OK</span>', cls: '', delay: 400 },
+  { text: '\u251C\u2500\u2500 MEMORY SUBSYSTEM ........ <span class="status-ok">OK</span>', cls: '', delay: 350 },
+  { text: '\u251C\u2500\u2500 TACTICAL OVERLAY ........ <span class="status-ok">OK</span>', cls: '', delay: 300 },
+  { text: '\u251C\u2500\u2500 COMMS ARRAY ............. <span class="status-ok">OK</span>', cls: '', delay: 350 },
+  { text: '\u251C\u2500\u2500 THREAT DETECTION ........ <span class="status-ok">OK</span>', cls: '', delay: 300 },
+  { text: '\u2514\u2500\u2500 WEAPONS SYSTEMS ......... <span class="status-standby">STANDBY</span>', cls: '', delay: 500 },
+  { text: '', cls: 'spacer', delay: 400 },
+  { text: 'LOADING MODEL: AXE-COMMAND-ORACLE [27B]', cls: 'model-line', delay: 600 },
+  { type: 'progress', delay: 2200 },
+  { text: '', cls: 'spacer', delay: 300 },
+  { text: 'ALL SYSTEMS NOMINAL', cls: 'nominal', delay: 800 },
+  { text: 'WELCOME, COMMANDER', cls: 'welcome', delay: 1200 },
+];
+
+const boot = document.getElementById('boot');
+let cursorEl = null;
+
+function removeCursor() {
+  if (cursorEl) { cursorEl.remove(); cursorEl = null; }
+}
+
+async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function runBoot() {
+  await sleep(500);
+  document.querySelectorAll('.frame-corner').forEach(el => el.classList.add('visible'));
+  await sleep(300);
+
+  for (const line of lines) {
+    removeCursor();
+
+    if (line.type === 'progress') {
+      const track = document.createElement('div');
+      track.className = 'progress-bar-track';
+      track.innerHTML = '<div class="progress-bar-fill" id="pbar"></div><span class="progress-pct" id="ppct">0%</span>';
+      boot.appendChild(track);
+      await sleep(50);
+      track.classList.add('visible');
+      const fill = document.getElementById('pbar');
+      const pct = document.getElementById('ppct');
+      fill.style.width = '100%';
+      let p = 0;
+      const iv = setInterval(() => {
+        p = Math.min(100, p + 2);
+        pct.textContent = p + '%';
+        if (p >= 100) clearInterval(iv);
+      }, 40);
+      await sleep(line.delay);
+      continue;
+    }
+
+    if (line.cls === 'spacer') {
+      const el = document.createElement('div');
+      el.style.height = '8px';
+      boot.appendChild(el);
+      await sleep(line.delay);
+      continue;
+    }
+
+    const el = document.createElement('div');
+    el.className = 'boot-line ' + line.cls;
+    el.innerHTML = line.text;
+    cursorEl = document.createElement('span');
+    cursorEl.className = 'cursor';
+    el.appendChild(cursorEl);
+    boot.appendChild(el);
+    await sleep(30);
+    el.classList.add('visible');
+    await sleep(line.delay);
+  }
+
+  removeCursor();
+  await sleep(1500);
+
+  document.getElementById('boot-screen').classList.add('fade-out');
+  await sleep(500);
+  document.getElementById('hud-reveal').classList.add('show');
+}
+
+runBoot();
+</script>
+</body>
+</html>

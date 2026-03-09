@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM — Buttons</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --hud-bg:#050a0e;--hud-surface:#0a1118;--hud-elevated:#0f1a24;
+  --hud-cyan:#00e5ff;--hud-amber:#ff9800;--hud-gold:#ffd740;
+  --hud-green:#00e676;--hud-red:#ff1744;--hud-blue:#2979ff;
+  --hud-text:#c8dce8;--hud-text-dim:#4a6a7a;
+  --hud-border:rgba(0,229,255,0.12);--hud-glow:rgba(0,229,255,0.25);
+  --font-mono:'Share Tech Mono','JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--hud-bg);color:var(--hud-text);font-family:var(--font-mono);padding:40px;
+  background-image:repeating-linear-gradient(0deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px),
+  repeating-linear-gradient(90deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px)}
+h2{color:var(--hud-cyan);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin:40px 0 20px;
+  padding-bottom:8px;border-bottom:1px solid var(--hud-border)}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:24px}
+.label{font-size:10px;color:var(--hud-text-dim);text-transform:uppercase;letter-spacing:0.15em;width:100%;margin-bottom:4px}
+
+/* ── PRIMARY BUTTON ── */
+.btn-primary{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--hud-bg);background:var(--hud-cyan);border:none;padding:10px 24px;cursor:pointer;
+  position:relative;transition:all 0.2s;
+}
+.btn-primary:hover{box-shadow:0 0 20px rgba(0,229,255,0.4),inset 0 0 20px rgba(255,255,255,0.1);transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0);box-shadow:0 0 8px rgba(0,229,255,0.3)}
+
+/* ── GHOST BUTTON ── */
+.btn-ghost{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--hud-cyan);background:transparent;border:1px solid var(--hud-cyan);padding:10px 24px;cursor:pointer;
+  position:relative;transition:all 0.2s;
+}
+.btn-ghost:hover{background:rgba(0,229,255,0.08);box-shadow:0 0 12px rgba(0,229,255,0.2)}
+.btn-ghost:active{background:rgba(0,229,255,0.15)}
+
+/* ── BRACKET BUTTON ── */
+.btn-bracket{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--hud-cyan);background:var(--hud-surface);border:none;padding:12px 28px;cursor:pointer;
+  position:relative;transition:all 0.2s;
+}
+.btn-bracket::before,.btn-bracket::after{
+  content:'';position:absolute;width:12px;height:12px;border-color:var(--hud-cyan);border-style:solid;
+  transition:all 0.3s;
+}
+.btn-bracket::before{top:-2px;left:-2px;border-width:2px 0 0 2px}
+.btn-bracket::after{bottom:-2px;right:-2px;border-width:0 2px 2px 0}
+.btn-bracket:hover::before,.btn-bracket:hover::after{width:calc(100% + 4px);height:calc(100% + 4px)}
+.btn-bracket:hover{color:#fff;text-shadow:0 0 8px var(--hud-cyan)}
+
+/* ── AMBER WARNING BUTTON ── */
+.btn-amber{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--hud-amber);background:transparent;border:1px solid var(--hud-amber);padding:10px 24px;cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-amber:hover{background:rgba(255,152,0,0.1);box-shadow:0 0 12px rgba(255,152,0,0.25)}
+
+/* ── RED DANGER BUTTON ── */
+.btn-danger{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--hud-red);background:transparent;border:1px solid var(--hud-red);padding:10px 24px;cursor:pointer;
+  transition:all 0.2s;animation:alertFlash 2s infinite;
+}
+@keyframes alertFlash{0%,70%,100%{border-color:var(--hud-red)}85%{border-color:rgba(255,23,68,0.3)}}
+.btn-danger:hover{background:rgba(255,23,68,0.12);box-shadow:0 0 15px rgba(255,23,68,0.3);animation:none}
+
+/* ── SCAN BUTTON (animated border trace) ── */
+.btn-scan{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--hud-cyan);background:var(--hud-surface);padding:10px 24px;cursor:pointer;
+  border:none;position:relative;overflow:hidden;transition:all 0.2s;
+}
+.btn-scan::before{
+  content:'';position:absolute;inset:-2px;
+  background:linear-gradient(90deg,transparent,var(--hud-cyan),transparent);
+  background-size:200% 100%;animation:borderTrace 2s linear infinite;z-index:-1;
+}
+.btn-scan::after{
+  content:'';position:absolute;inset:1px;background:var(--hud-surface);z-index:-1;
+}
+@keyframes borderTrace{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.btn-scan:hover{color:#fff;text-shadow:0 0 8px var(--hud-cyan)}
+
+/* ── HEXAGONAL BUTTON ── */
+.btn-hex{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--hud-cyan);background:var(--hud-surface);border:1px solid var(--hud-border);
+  padding:10px 32px;cursor:pointer;clip-path:polygon(8% 0,92% 0,100% 50%,92% 100%,8% 100%,0 50%);
+  transition:all 0.2s;
+}
+.btn-hex:hover{background:rgba(0,229,255,0.1);border-color:var(--hud-cyan)}
+
+/* ── ICON BUTTON (circle) ── */
+.btn-icon{
+  width:40px;height:40px;border-radius:50%;border:1px solid var(--hud-border);background:var(--hud-surface);
+  color:var(--hud-cyan);display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all 0.2s;font-size:16px;
+}
+.btn-icon:hover{border-color:var(--hud-cyan);box-shadow:0 0 12px var(--hud-glow);background:rgba(0,229,255,0.08)}
+
+/* ── PILL TOGGLE ── */
+.btn-pill{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--hud-text-dim);background:var(--hud-surface);border:1px solid var(--hud-border);
+  padding:6px 16px;border-radius:20px;cursor:pointer;transition:all 0.2s;
+}
+.btn-pill.active{color:var(--hud-cyan);border-color:var(--hud-cyan);background:rgba(0,229,255,0.08)}
+.btn-pill:hover{border-color:var(--hud-cyan);color:var(--hud-text)}
+
+/* ── LOADING STATE ── */
+.btn-loading{pointer-events:none;opacity:0.7}
+.btn-loading .spinner{display:inline-block;width:12px;height:12px;border:2px solid transparent;
+  border-top-color:currentColor;border-radius:50%;animation:radarSweep 0.8s linear infinite;margin-right:8px;vertical-align:middle}
+@keyframes radarSweep{to{transform:rotate(360deg)}}
+
+/* ── SIZES ── */
+.btn-sm{padding:6px 14px;font-size:10px}
+.btn-lg{padding:14px 36px;font-size:14px}
+</style>
+</head>
+<body>
+<h2>// PRIMARY ACTIONS</h2>
+<div class="row">
+  <button class="btn-primary">EXECUTE</button>
+  <button class="btn-primary btn-sm">CONFIRM</button>
+  <button class="btn-primary btn-lg">INITIATE SEQUENCE</button>
+  <button class="btn-primary btn-loading"><span class="spinner"></span>PROCESSING</button>
+</div>
+
+<h2>// GHOST / OUTLINE</h2>
+<div class="row">
+  <button class="btn-ghost">DEPLOY</button>
+  <button class="btn-ghost btn-sm">SCAN</button>
+  <button class="btn-ghost btn-lg">AUTHORIZE ACCESS</button>
+</div>
+
+<h2>// BRACKET FRAME (hover to expand)</h2>
+<div class="row">
+  <button class="btn-bracket">ANALYZE</button>
+  <button class="btn-bracket">TRANSMIT</button>
+  <button class="btn-bracket">OVERRIDE</button>
+</div>
+
+<h2>// ANIMATED BORDER TRACE</h2>
+<div class="row">
+  <button class="btn-scan">SCANNING</button>
+  <button class="btn-scan">SYNC DATA</button>
+</div>
+
+<h2>// STATUS VARIANTS</h2>
+<div class="row">
+  <button class="btn-amber">CAUTION</button>
+  <button class="btn-danger">ABORT MISSION</button>
+  <button class="btn-ghost" style="color:var(--hud-green);border-color:var(--hud-green)">ONLINE</button>
+</div>
+
+<h2>// HEXAGONAL</h2>
+<div class="row">
+  <button class="btn-hex">COMMAND</button>
+  <button class="btn-hex">TACTICAL</button>
+  <button class="btn-hex">RECON</button>
+</div>
+
+<h2>// ICON BUTTONS</h2>
+<div class="row">
+  <button class="btn-icon">+</button>
+  <button class="btn-icon">⟳</button>
+  <button class="btn-icon">⚡</button>
+  <button class="btn-icon">◎</button>
+  <button class="btn-icon">✕</button>
+</div>
+
+<h2>// PILL TOGGLES</h2>
+<div class="row">
+  <button class="btn-pill active">WEB</button>
+  <button class="btn-pill active">FILES</button>
+  <button class="btn-pill">VOICE</button>
+  <button class="btn-pill active">MEMORY</button>
+  <button class="btn-pill">TOOLS</button>
+</div>
+</body>
+</html>

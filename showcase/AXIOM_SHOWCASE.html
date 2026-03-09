@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM — Design System Showcase</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050a0e;--s:#0a1118;--el:#0f1a24;--c:#00e5ff;--a:#ff9800;--g:#00e676;--r:#ff1744;
+  --text:#c8dce8;--dim:#4a6a7a;--border:rgba(0,229,255,0.12);--glow:rgba(0,229,255,0.25);
+  --font:'Share Tech Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);
+  background-image:repeating-linear-gradient(0deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px),
+  repeating-linear-gradient(90deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px)}
+
+/* ── TOP BAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:48px;background:var(--s);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:100;
+  backdrop-filter:blur(12px);background:rgba(10,17,24,0.92)}
+.topbar-title{color:var(--c);font-size:13px;letter-spacing:0.3em;text-transform:uppercase}
+.topbar-title span{color:var(--a)}
+.topbar-status{font-size:10px;color:var(--dim);letter-spacing:0.15em;display:flex;gap:20px;align-items:center}
+.topbar-status .dot{width:6px;height:6px;border-radius:50%;background:var(--g);display:inline-block;
+  margin-right:6px;box-shadow:0 0 6px var(--g);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.clock{color:var(--c);font-size:11px}
+
+/* ── SIDEBAR NAV ── */
+.sidebar{position:fixed;top:48px;left:0;width:220px;bottom:0;background:rgba(10,17,24,0.95);
+  border-right:1px solid var(--border);overflow-y:auto;z-index:90;padding:16px 0}
+.nav-section{padding:12px 16px 4px;font-size:9px;color:var(--a);letter-spacing:0.2em;text-transform:uppercase}
+.nav-item{display:block;padding:8px 16px 8px 24px;font-size:11px;color:var(--dim);letter-spacing:0.1em;
+  text-decoration:none;cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-transform:uppercase}
+.nav-item:hover{color:var(--text);background:rgba(0,229,255,0.04);border-left-color:var(--c)}
+.nav-item.active{color:var(--c);border-left-color:var(--c);background:rgba(0,229,255,0.06)}
+.nav-count{float:right;font-size:9px;color:var(--dim);background:rgba(0,229,255,0.08);padding:1px 6px;border-radius:2px}
+
+/* ── MAIN ── */
+.main{margin-left:220px;margin-top:48px;padding:32px}
+
+/* ── SECTION ── */
+.section{margin-bottom:64px}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:12px;
+  border-bottom:1px solid var(--border)}
+.section-id{font-size:10px;color:var(--bg);background:var(--c);padding:2px 8px;letter-spacing:0.15em}
+.section-title{font-size:14px;color:var(--c);letter-spacing:0.2em;text-transform:uppercase}
+.section-desc{font-size:11px;color:var(--dim);margin-bottom:20px;line-height:1.7;letter-spacing:0.05em}
+
+/* ── IFRAME WRAPPER ── */
+.preview-frame{position:relative;background:var(--s);border:1px solid var(--border);margin-bottom:24px;overflow:hidden}
+.preview-frame::before,.preview-frame::after{content:'';position:absolute;width:14px;height:14px;
+  border-color:var(--c);border-style:solid;z-index:5;pointer-events:none}
+.preview-frame::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.preview-frame::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+.preview-label{position:absolute;top:0;left:20px;font-size:9px;color:var(--a);letter-spacing:0.15em;
+  text-transform:uppercase;z-index:6;background:var(--s);padding:2px 8px}
+.preview-frame iframe{width:100%;border:none;display:block;background:var(--bg)}
+.lazy-iframe[data-src]:not([src]){min-height:200px}
+.preview-open{position:absolute;top:0;right:20px;font-size:9px;color:var(--c);letter-spacing:0.12em;
+  text-transform:uppercase;z-index:6;background:var(--s);padding:2px 8px;cursor:pointer;
+  text-decoration:none;border:none;font-family:var(--font);transition:color .15s}
+.preview-open:hover{color:#fff}
+
+/* ── GRID ── */
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:1200px){.preview-grid{grid-template-columns:1fr}}
+
+/* ── STATS ── */
+.stats-bar{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:32px}
+.stat{background:var(--s);border:1px solid var(--border);padding:16px 24px;flex:1;min-width:140px;position:relative}
+.stat::before,.stat::after{content:'';position:absolute;width:8px;height:8px;border-color:var(--c);border-style:solid}
+.stat::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
+.stat::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
+.stat-val{font-size:28px;color:var(--c);line-height:1}
+.stat-label{font-size:9px;color:var(--dim);letter-spacing:0.15em;text-transform:uppercase;margin-top:4px}
+
+/* ── FULL-SCREEN LAYOUTS ── */
+.layout-card{background:var(--s);border:1px solid var(--border);padding:0;position:relative;cursor:pointer;
+  transition:all .2s;overflow:hidden}
+.layout-card:hover{border-color:var(--c);box-shadow:0 0 20px rgba(0,229,255,0.1)}
+.layout-card iframe{width:100%;height:400px;border:none;pointer-events:none;background:var(--bg)}
+.layout-card-info{padding:16px;border-top:1px solid var(--border)}
+.layout-card-title{font-size:12px;color:var(--c);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px}
+.layout-card-desc{font-size:10px;color:var(--dim);letter-spacing:0.05em;line-height:1.6}
+.layout-card .open-btn{position:absolute;top:12px;right:12px;background:rgba(0,229,255,0.15);
+  border:1px solid var(--c);color:var(--c);padding:4px 12px;font-size:9px;font-family:var(--font);
+  letter-spacing:0.15em;cursor:pointer;text-transform:uppercase;z-index:5;transition:all .15s}
+.layout-card .open-btn:hover{background:var(--c);color:var(--bg)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,229,255,0.4)}
+
+/* ── BOOT ANIMATION ── */
+.boot-overlay{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;transition:opacity .8s}
+.boot-overlay.done{opacity:0;pointer-events:none}
+.boot-text{font-size:11px;color:var(--dim);letter-spacing:0.15em;margin:4px 0;opacity:0;animation:bootLine .3s ease forwards}
+.boot-text.ok{color:var(--g)}.boot-text.warn{color:var(--a)}.boot-text.title{color:var(--c);font-size:16px;letter-spacing:0.3em;margin-bottom:16px}
+@keyframes bootLine{to{opacity:1}}
+.boot-bar{width:300px;height:2px;background:rgba(0,229,255,0.1);margin-top:20px;overflow:hidden;border-radius:1px}
+.boot-bar-fill{height:100%;width:0;background:var(--c);box-shadow:0 0 8px var(--c);transition:width .1s}
+
+/* ── TICKER ── */
+.ticker{position:fixed;bottom:0;left:220px;right:0;height:28px;background:rgba(10,17,24,0.95);
+  border-top:1px solid var(--border);overflow:hidden;z-index:90;display:flex;align-items:center}
+.ticker-inner{white-space:nowrap;font-size:10px;color:var(--dim);letter-spacing:0.1em;animation:scroll 40s linear infinite}
+.ticker-inner span{color:var(--c)}
+@keyframes scroll{from{transform:translateX(100vw)}to{transform:translateX(-200%)}}
+</style>
+</head>
+<body>
+
+<!-- BOOT ANIMATION -->
+<div class="boot-overlay" id="boot">
+  <div class="boot-text title" style="animation-delay:0s">AXIOM DESIGN SYSTEM</div>
+  <div class="boot-text" style="animation-delay:.3s">INITIALIZING COMPONENT LIBRARY...</div>
+  <div class="boot-text" style="animation-delay:.6s">LOADING ANIMATIONS ENGINE <span class="ok">[OK]</span></div>
+  <div class="boot-text" style="animation-delay:.9s">LOADING SVG RENDERERS <span class="ok">[OK]</span></div>
+  <div class="boot-text" style="animation-delay:1.2s">LOADING PARTICLE SYSTEMS <span class="ok">[OK]</span></div>
+  <div class="boot-text" style="animation-delay:1.5s">LOADING LAYOUT ENGINES <span class="ok">[OK]</span></div>
+  <div class="boot-text" style="animation-delay:1.8s">COMPILING HUD PRIMITIVES <span class="ok">[OK]</span></div>
+  <div class="boot-text" style="animation-delay:2.1s">VERIFYING ASSET INTEGRITY <span class="ok">[OK]</span></div>
+  <div class="boot-text" style="animation-delay:2.4s">ALL SYSTEMS OPERATIONAL <span class="ok">[READY]</span></div>
+  <div class="boot-bar"><div class="boot-bar-fill" id="bootBar"></div></div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-title">AXIOM <span>DESIGN SYSTEM</span> // SHOWCASE</div>
+  <div class="topbar-status">
+    <span><span class="dot"></span>ONLINE</span>
+    <span>16 MODULES</span>
+    <span>PURE CSS/SVG/JS</span>
+    <span class="clock" id="clock"></span>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="nav-section">Overview</div>
+  <a class="nav-item active" onclick="scrollTo_('stats')">Dashboard</a>
+
+  <div class="nav-section">Components</div>
+  <a class="nav-item" onclick="scrollTo_('buttons')">Buttons <span class="nav-count">10</span></a>
+  <a class="nav-item" onclick="scrollTo_('panels')">Panels <span class="nav-count">8</span></a>
+  <a class="nav-item" onclick="scrollTo_('indicators')">Indicators <span class="nav-count">12</span></a>
+  <a class="nav-item" onclick="scrollTo_('data-displays')">Data Displays <span class="nav-count">8</span></a>
+  <a class="nav-item" onclick="scrollTo_('navigation')">Navigation <span class="nav-count">7</span></a>
+
+  <div class="nav-section">Animations</div>
+  <a class="nav-item" onclick="scrollTo_('loaders')">Loading Screens <span class="nav-count">10</span></a>
+  <a class="nav-item" onclick="scrollTo_('area-loaders')">Area Loaders <span class="nav-count">8</span></a>
+  <a class="nav-item" onclick="scrollTo_('svg-anims')">SVG Animations <span class="nav-count">8</span></a>
+  <a class="nav-item" onclick="scrollTo_('transitions')">Transitions <span class="nav-count">6</span></a>
+  <a class="nav-item" onclick="scrollTo_('particles')">Particle Systems <span class="nav-count">6</span></a>
+
+  <div class="nav-section">Full Layouts</div>
+  <a class="nav-item" onclick="scrollTo_('layouts')">Boot Sequence</a>
+  <a class="nav-item" onclick="scrollTo_('layouts')">Command Center</a>
+  <a class="nav-item" onclick="scrollTo_('layouts')">Targeting Overlay</a>
+  <a class="nav-item" onclick="scrollTo_('layouts')">Globe View</a>
+  <a class="nav-item" onclick="scrollTo_('layouts')">Threat Dashboard</a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- STATS -->
+  <div id="stats" class="section">
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-val">16</div><div class="stat-label">HTML Modules</div></div>
+      <div class="stat"><div class="stat-val">75+</div><div class="stat-label">Components</div></div>
+      <div class="stat"><div class="stat-val">30+</div><div class="stat-label">Animations</div></div>
+      <div class="stat"><div class="stat-val">0</div><div class="stat-label">Dependencies</div></div>
+      <div class="stat"><div class="stat-val">5</div><div class="stat-label">Full Layouts</div></div>
+    </div>
+  </div>
+
+  <!-- COMPONENTS: BUTTONS -->
+  <div id="buttons" class="section">
+    <div class="section-header">
+      <span class="section-id">01</span>
+      <span class="section-title">Buttons</span>
+    </div>
+    <div class="section-desc">10 button variants — primary, ghost, bracket-frame, animated border trace, hexagonal clip-path, amber warning, red danger with alert flash, icon circles, pill toggles, and loading states.</div>
+    <div class="preview-frame">
+      <span class="preview-label">buttons.html</span>
+      <a class="preview-open" href="../components/buttons.html" target="_blank">Open Full</a>
+      <iframe class="lazy-iframe" data-src="../components/buttons.html" height="700"></iframe>
+    </div>
+  </div>
+
+  <!-- COMPONENTS: PANELS -->
+  <div id="panels" class="section">
+    <div class="section-header">
+      <span class="section-id">02</span>
+      <span class="section-title">Panels & Cards</span>
+    </div>
+    <div class="section-desc">HUD panels with corner brackets, collapsible sections, data readout panels, alert variants, status cards, intel cards, and metric tiles.</div>
+    <div class="preview-frame">
+      <span class="preview-label">panels.html</span>
+      <a class="preview-open" href="../components/panels.html" target="_blank">Open Full</a>
+      <iframe class="lazy-iframe" data-src="../components/panels.html" height="900"></iframe>
+    </div>
+  </div>
+
+  <!-- COMPONENTS: INDICATORS -->
+  <div id="indicators" class="section">
+    <div class="section-header">
+      <span class="section-id">03</span>
+      <span class="section-title">Indicators & Gauges</span>
+    </div>
+    <div class="section-desc">Circular gauges, signal strength bars, status dot arrays, connection meters, DEFCON level strips, battery indicators, compass rose, tape gauges, circular progress, mini radar, waveform displays, and segmented arcs.</div>
+    <div class="preview-frame">
+      <span class="preview-label">indicators.html</span>
+      <a class="preview-open" href="../components/indicators.html" target="_blank">Open Full</a>
+      <iframe class="lazy-iframe" data-src="../components/indicators.html" height="900"></iframe>
+    </div>
+  </div>
+
+  <!-- COMPONENTS: DATA DISPLAYS -->
+  <div id="data-displays" class="section">
+    <div class="section-header">
+      <span class="section-id">04</span>
+      <span class="section-title">Data Displays</span>
+    </div>
+    <div class="section-desc">Data tables, terminal logs, key-value readouts, timeline feeds, stat grids, scrolling data tickers, and information panels optimized for dense tactical data presentation.</div>
+    <div class="preview-frame">
+      <span class="preview-label">data-displays.html</span>
+      <a class="preview-open" href="../components/data-displays.html" target="_blank">Open Full</a>
+      <iframe class="lazy-iframe" data-src="../components/data-displays.html" height="900"></iframe>
+    </div>
+  </div>
+
+  <!-- COMPONENTS: NAVIGATION -->
+  <div id="navigation" class="section">
+    <div class="section-header">
+      <span class="section-id">05</span>
+      <span class="section-title">Navigation</span>
+    </div>
+    <div class="section-desc">Tab bars, breadcrumbs, sidebar nav, command palette (Cmd+K), pagination, dropdowns, and toggle switches — all with HUD styling.</div>
+    <div class="preview-frame">
+      <span class="preview-label">navigation.html</span>
+      <a class="preview-open" href="../components/navigation.html" target="_blank">Open Full</a>
+      <iframe class="lazy-iframe" data-src="../components/navigation.html" height="800"></iframe>
+    </div>
+  </div>
+
+  <!-- ANIMATIONS: LOADING SCREENS -->
+  <div id="loaders" class="section">
+    <div class="section-header">
+      <span class="section-id">05</span>
+      <span class="section-title">Loading Screens & Spinners</span>
+    </div>
+    <div class="section-desc">Targeting reticle (3 rotating rings + crosshairs), radar sweep with blips, sonar ping rings, data processing bars, hexagonal SVG spinner, orbital dots, waveform equalizer, scan line, segmented circle, and typewriter text.</div>
+    <div class="preview-frame">
+      <span class="preview-label">loading-screens.html</span>
+      <a class="preview-open" href="../animations/loading-screens.html" target="_blank">Open Full</a>
+      <iframe class="lazy-iframe" data-src="../animations/loading-screens.html" height="700"></iframe>
+    </div>
+  </div>
+
+  <!-- ANIMATIONS: AREA LOADERS -->
+  <div id="area-loaders" class="section">
+    <div class="section-header">
+      <span class="section-id">06</span>
+      <span class="section-title">Area Loading Animations</span>
+    </div>
+    <div class="section-desc">Panel-level loading states — horizontal scan-in, grid cell stagger, skeleton HUD shimmer, bracket reveal, holographic CRT flicker, perimeter border trace, scrolling data stream, and tactical map with radar sweep.</div>
+    <div class="preview-frame">
+      <span class="preview-label">area-loaders.html</span>
+      <a class="preview-open" href="../animations/area-loaders.html" target="_blank">Open Full</a>
+      <iframe class="lazy-iframe" data-src="../animations/area-loaders.html" height="900"></iframe>
+    </div>
+  </div>
+
+  <!-- ANIMATIONS: SVG -->
+  <div id="svg-anims" class="section">
+    <div class="section-header">
+      <span class="section-id">07</span>
+      <span class="section-title">SVG Animations</span>
+    </div>
+    <div class="section-desc">8 advanced SVG animations — compass rose, satellite orbit tracker, neural network with firing synapses, DNA helix, hexagonal grid, missile trajectory, circular frequency analyzer, and topographic contour map.</div>
+    <div class="preview-frame">
+      <span class="preview-label">svg-animations.html</span>
+      <a class="preview-open" href="../animations/svg-animations.html" target="_blank">Open Full</a>
+      <iframe class="lazy-iframe" data-src="../animations/svg-animations.html" height="800"></iframe>
+    </div>
+  </div>
+
+  <!-- ANIMATIONS: TRANSITIONS -->
+  <div id="transitions" class="section">
+    <div class="section-header">
+      <span class="section-id">08</span>
+      <span class="section-title">Page Transitions</span>
+    </div>
+    <div class="section-desc">6 interactive transition effects with play buttons — HUD scan wipe, grid dissolve, bracket close, radar reveal, glitch transition, and matrix rain fade.</div>
+    <div class="preview-frame">
+      <span class="preview-label">transitions.html</span>
+      <a class="preview-open" href="../animations/transitions.html" target="_blank">Open Full</a>
+      <iframe class="lazy-iframe" data-src="../animations/transitions.html" height="700"></iframe>
+    </div>
+  </div>
+
+  <!-- ANIMATIONS: PARTICLES -->
+  <div id="particles" class="section">
+    <div class="section-header">
+      <span class="section-id">09</span>
+      <span class="section-title">Particle Systems</span>
+    </div>
+    <div class="section-desc">6 canvas-based 60fps particle systems — reactive grid dots, connection mesh, data rain, orbital particles, constellation field, and signal propagation wave.</div>
+    <div class="preview-frame">
+      <span class="preview-label">particle-systems.html</span>
+      <a class="preview-open" href="../animations/particle-systems.html" target="_blank">Open Full</a>
+      <iframe class="lazy-iframe" data-src="../animations/particle-systems.html" height="800"></iframe>
+    </div>
+  </div>
+
+  <!-- FULL LAYOUTS -->
+  <div id="layouts" class="section">
+    <div class="section-header">
+      <span class="section-id">10</span>
+      <span class="section-title">Full-Screen Layouts</span>
+    </div>
+    <div class="section-desc">Immersive full-screen HUD experiences. Click "ENTER" to open each in a new tab for the full experience.</div>
+
+    <div class="preview-grid">
+      <div class="layout-card" onclick="window.open('../layouts/boot-sequence.html','_blank')">
+        <button class="open-btn">Enter</button>
+        <iframe class="lazy-iframe" data-src="../layouts/boot-sequence.html" height="400" loading="lazy"></iframe>
+        <div class="layout-card-info">
+          <div class="layout-card-title">Boot Sequence</div>
+          <div class="layout-card-desc">System initialization with typewriter lines, progress bar, CRT scanlines, and transition to ready state.</div>
+        </div>
+      </div>
+
+      <div class="layout-card" onclick="window.open('../layouts/command-center.html','_blank')">
+        <button class="open-btn">Enter</button>
+        <iframe class="lazy-iframe" data-src="../layouts/command-center.html" height="400" loading="lazy"></iframe>
+        <div class="layout-card-info">
+          <div class="layout-card-title">Command Center</div>
+          <div class="layout-card-desc">Full dashboard with sidebar nav, live clock, sparkline cards, intel feed, system readouts, and scrolling ticker.</div>
+        </div>
+      </div>
+
+      <div class="layout-card" onclick="window.open('../layouts/targeting-overlay.html','_blank')">
+        <button class="open-btn">Enter</button>
+        <iframe class="lazy-iframe" data-src="../layouts/targeting-overlay.html" height="400" loading="lazy"></iframe>
+        <div class="layout-card-info">
+          <div class="layout-card-title">Targeting Overlay</div>
+          <div class="layout-card-desc">Fighter jet HUD — rotating reticle, compass band, altitude/speed tapes, lock brackets, threat diamonds.</div>
+        </div>
+      </div>
+
+      <div class="layout-card" onclick="window.open('../layouts/globe-view.html','_blank')">
+        <button class="open-btn">Enter</button>
+        <iframe class="lazy-iframe" data-src="../layouts/globe-view.html" height="400" loading="lazy"></iframe>
+        <div class="layout-card-info">
+          <div class="layout-card-title">Globe Operations</div>
+          <div class="layout-card-desc">Wireframe globe with city nodes, connection lines, flowing particles, satellite orbit, and node statistics panel.</div>
+        </div>
+      </div>
+
+      <div class="layout-card" onclick="window.open('../layouts/threat-dashboard.html','_blank')">
+        <button class="open-btn">Enter</button>
+        <iframe class="lazy-iframe" data-src="../layouts/threat-dashboard.html" height="400" loading="lazy"></iframe>
+        <div class="layout-card-info">
+          <div class="layout-card-title">Threat Dashboard</div>
+          <div class="layout-card-desc">Multi-panel threat assessment — radar with hostile/friendly blips, DEFCON gauge, alert feed, perimeter status.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MASTER CSS -->
+  <div id="css" class="section">
+    <div class="section-header">
+      <span class="section-id">00</span>
+      <span class="section-title">Master CSS — axiom-hud.css</span>
+    </div>
+    <div class="section-desc">The shared design system CSS with palette variables, 20+ keyframe animations, utility classes (scanlines, grid backgrounds, corner brackets). Import this into any project to get the AXIOM HUD foundation.</div>
+    <div class="preview-frame" style="padding:24px">
+      <span class="preview-label">axiom-hud.css</span>
+      <a class="preview-open" href="../axiom-hud.css" target="_blank">View Source</a>
+      <pre style="font-size:11px;color:var(--dim);line-height:1.6;overflow-x:auto;white-space:pre"><code style="color:var(--text)">/* Import: */
+&lt;link rel="stylesheet" href="axiom-hud.css"&gt;
+
+/* Variables available: */
+--hud-bg, --hud-surface, --hud-elevated
+--hud-cyan, --hud-amber, --hud-gold, --hud-green, --hud-red, --hud-blue
+--hud-text, --hud-text-dim, --hud-grid, --hud-border, --hud-glow
+
+/* Utility classes: */
+.hud-scanlines    — CRT scanline overlay
+.hud-grid-bg      — Subtle grid background
+.hud-bracket      — Corner bracket decorations (2 corners)
+.hud-bracket-full — All 4 corner brackets
+
+/* 20+ @keyframes: */
+radarSweep, hudPulse, hudBreathe, hudScanIn, hudFadeIn,
+hudGlitch, dataTicker, reticleRotate, scanLine, hexPulse,
+progressFill, alertFlash, typewriter, blink, waveform,
+orbitDot, gridPulse, borderTrace, sonarPing, loadBarSlide</code></pre>
+    </div>
+  </div>
+
+  <div style="height:80px"></div>
+</div>
+
+<!-- BOTTOM TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    AXIOM DESIGN SYSTEM <span>//</span> 15 MODULES <span>//</span> 68+ COMPONENTS <span>//</span>
+    ZERO DEPENDENCIES <span>//</span> PURE CSS / SVG / CANVAS <span>//</span>
+    MILITARY COMMAND CENTER AESTHETIC <span>//</span> AXE TECHNOLOGY INTELLIGENCE PLATFORM <span>//</span>
+    BUTTONS <span>//</span> PANELS <span>//</span> INDICATORS <span>//</span> DATA DISPLAYS <span>//</span>
+    LOADING SCREENS <span>//</span> AREA LOADERS <span>//</span> SVG ANIMATIONS <span>//</span>
+    TRANSITIONS <span>//</span> PARTICLE SYSTEMS <span>//</span> BOOT SEQUENCE <span>//</span>
+    COMMAND CENTER <span>//</span> TARGETING OVERLAY <span>//</span> GLOBE VIEW <span>//</span> THREAT DASHBOARD <span>//</span>
+    AXIOM DESIGN SYSTEM <span>//</span> FORGE + JAMES = AXE <span>//</span>
+  </div>
+</div>
+
+<script>
+// Clock
+function updateClock(){
+  const now=new Date();
+  const utc=now.toISOString().slice(11,19);
+  document.getElementById('clock').textContent='UTC '+utc;
+}
+setInterval(updateClock,1000);updateClock();
+
+// Boot animation
+let progress=0;
+const bar=document.getElementById('bootBar');
+const boot=document.getElementById('boot');
+const bootInterval=setInterval(()=>{
+  progress+=Math.random()*8+2;
+  if(progress>=100){progress=100;clearInterval(bootInterval);
+    setTimeout(()=>boot.classList.add('done'),400);
+    setTimeout(()=>boot.style.display='none',1200);
+  }
+  bar.style.width=progress+'%';
+},80);
+
+// Nav scroll
+function scrollTo_(id){
+  document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// Lazy load iframes on scroll
+const lazyObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const iframe=e.target;
+      if(iframe.dataset.src&&!iframe.src){
+        iframe.src=iframe.dataset.src;
+      }
+      lazyObserver.unobserve(iframe);
+    }
+  });
+},{rootMargin:'400px'});
+document.querySelectorAll('.lazy-iframe[data-src]').forEach(f=>lazyObserver.observe(f));
+
+// Active nav on scroll
+const sections=document.querySelectorAll('.section');
+const navItems=document.querySelectorAll('.nav-item');
+window.addEventListener('scroll',()=>{
+  let current='stats';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)current=s.id});
+  navItems.forEach(n=>{
+    n.classList.remove('active');
+    if(n.getAttribute('onclick')?.includes(current))n.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

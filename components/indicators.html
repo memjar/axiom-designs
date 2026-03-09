@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM HUD — Indicators & Gauges</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --hud-bg: #050a0e;
+  --hud-cyan: #00e5ff;
+  --hud-amber: #ff9800;
+  --hud-red: #ff1744;
+  --hud-green: #00e676;
+  --hud-gold: #ffd740;
+  --hud-text: #c8dce8;
+  --hud-text-dim: #4a6a7a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--hud-bg);
+  color: var(--hud-text);
+  font-family: 'Share Tech Mono', monospace;
+  padding: 32px;
+  line-height: 1.6;
+}
+h1 { color: var(--hud-cyan); font-size: 14px; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px; text-shadow: 0 0 12px rgba(0,229,255,0.5); }
+.subtitle { color: var(--hud-text-dim); font-size: 11px; letter-spacing: 2px; margin-bottom: 40px; text-transform: uppercase; }
+.section-label { color: var(--hud-text-dim); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; margin-bottom: 48px; align-items: start; }
+.component-box { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.comp-label { font-size: 10px; color: var(--hud-text-dim); text-transform: uppercase; letter-spacing: 2px; text-align: center; }
+
+/* ── CIRCULAR GAUGE ── */
+.circular-gauge { position: relative; width: 160px; height: 160px; }
+.circular-gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.gauge-track { fill: none; stroke: rgba(0,229,255,0.1); stroke-width: 6; }
+.gauge-fill { fill: none; stroke: var(--hud-cyan); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 408; stroke-dashoffset: 408; animation: gaugeFill 2s ease-out forwards; filter: drop-shadow(0 0 6px rgba(0,229,255,0.5)); }
+@keyframes gaugeFill { to { stroke-dashoffset: var(--offset); } }
+.gauge-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.gauge-value { font-size: 28px; color: var(--hud-cyan); text-shadow: 0 0 15px rgba(0,229,255,0.4); }
+.gauge-unit { font-size: 10px; color: var(--hud-text-dim); text-transform: uppercase; letter-spacing: 2px; }
+/* Tick marks */
+.gauge-ticks { position: absolute; inset: 0; }
+.gauge-ticks .tick { position: absolute; width: 1px; height: 6px; background: rgba(0,229,255,0.3); top: 2px; left: 50%; transform-origin: 0 78px; }
+
+/* ── SIGNAL BARS ── */
+.signal-bars { display: flex; align-items: flex-end; gap: 3px; height: 28px; }
+.signal-bars .bar { width: 6px; background: var(--hud-cyan); border-radius: 1px 1px 0 0; opacity: 0.2; transition: opacity 0.3s; }
+.signal-bars .bar.active { opacity: 1; animation: barPulse 2s ease-in-out infinite; }
+@keyframes barPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+/* ── STATUS DOTS ── */
+.dot-row { display: flex; gap: 24px; }
+.status-indicator { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.status-dot-lg { width: 12px; height: 12px; border-radius: 50%; position: relative; }
+.status-dot-lg::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; opacity: 0; animation: dotPulse 2s ease-out infinite; }
+.status-dot-lg.online { background: var(--hud-green); box-shadow: 0 0 10px var(--hud-green); }
+.status-dot-lg.online::after { border: 1px solid var(--hud-green); }
+.status-dot-lg.offline { background: var(--hud-text-dim); box-shadow: none; }
+.status-dot-lg.offline::after { display: none; }
+.status-dot-lg.warning { background: var(--hud-amber); box-shadow: 0 0 10px var(--hud-amber); }
+.status-dot-lg.warning::after { border: 1px solid var(--hud-amber); }
+.status-dot-lg.critical { background: var(--hud-red); box-shadow: 0 0 10px var(--hud-red); animation: critBlink 0.8s step-end infinite; }
+@keyframes critBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.status-dot-lg.critical::after { border: 1px solid var(--hud-red); }
+@keyframes dotPulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2.5); opacity: 0; } }
+.dot-label { font-size: 9px; color: var(--hud-text-dim); text-transform: uppercase; letter-spacing: 1px; }
+
+/* ── CONNECTION QUALITY ── */
+.conn-meter { width: 200px; }
+.conn-bar-bg { height: 6px; background: rgba(0,229,255,0.1); border-radius: 3px; overflow: hidden; }
+.conn-bar-fill { height: 100%; border-radius: 3px; animation: connFill 1.5s ease-out forwards; width: 0; }
+@keyframes connFill { to { width: var(--w); } }
+.conn-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 9px; color: var(--hud-text-dim); text-transform: uppercase; }
+
+/* ── DEFCON / THREAT LEVEL ── */
+.defcon { display: flex; gap: 4px; }
+.defcon-level { width: 40px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; border: 1px solid rgba(0,229,255,0.1); color: var(--hud-text-dim); transition: all 0.3s; position: relative; overflow: hidden; }
+.defcon-level.active { color: #fff; }
+.defcon-level.active::after { content: ''; position: absolute; inset: 0; opacity: 0.15; }
+.defcon-level[data-level="1"].active { border-color: var(--hud-red); background: rgba(255,23,68,0.2); color: var(--hud-red); animation: defconFlash 0.5s step-end infinite; }
+.defcon-level[data-level="2"].active { border-color: var(--hud-red); background: rgba(255,23,68,0.12); color: var(--hud-red); }
+.defcon-level[data-level="3"].active { border-color: var(--hud-amber); background: rgba(255,152,0,0.12); color: var(--hud-amber); }
+.defcon-level[data-level="4"].active { border-color: var(--hud-gold); background: rgba(255,215,64,0.1); color: var(--hud-gold); }
+.defcon-level[data-level="5"].active { border-color: var(--hud-green); background: rgba(0,230,118,0.1); color: var(--hud-green); }
+@keyframes defconFlash { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* ── BATTERY METER ── */
+.battery { display: flex; align-items: center; gap: 4px; }
+.battery-body { width: 60px; height: 24px; border: 1.5px solid var(--hud-cyan); border-radius: 3px; padding: 3px; position: relative; }
+.battery-fill { height: 100%; border-radius: 1px; transition: width 1s; animation: battFill 2s ease-out forwards; width: 0; }
+@keyframes battFill { to { width: var(--w); } }
+.battery-tip { width: 4px; height: 10px; background: var(--hud-cyan); border-radius: 0 2px 2px 0; opacity: 0.5; }
+.battery-pct { font-size: 11px; color: var(--hud-cyan); margin-left: 8px; }
+
+/* ── COMPASS ROSE ── */
+.compass { position: relative; width: 160px; height: 160px; }
+.compass svg { width: 100%; height: 100%; }
+.compass-bearing { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--hud-cyan); text-shadow: 0 0 10px rgba(0,229,255,0.4); }
+.compass-bearing .deg { font-size: 11px; color: var(--hud-text-dim); }
+
+/* ── TAPE GAUGE ── */
+.tape-gauge { width: 48px; height: 200px; position: relative; border: 1px solid rgba(0,229,255,0.15); overflow: hidden; background: rgba(0,229,255,0.02); }
+.tape-scale { position: absolute; width: 100%; animation: tapeScroll 10s linear infinite; }
+.tape-mark { display: flex; align-items: center; height: 20px; font-size: 9px; color: var(--hud-text-dim); padding-left: 6px; border-bottom: 1px solid rgba(0,229,255,0.08); }
+.tape-mark.major { color: var(--hud-cyan); border-bottom-color: rgba(0,229,255,0.2); }
+.tape-pointer { position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: var(--hud-cyan); box-shadow: 0 0 6px var(--hud-cyan); z-index: 2; }
+.tape-pointer::after { content: ''; position: absolute; right: -1px; top: -4px; border: 5px solid transparent; border-right: 6px solid var(--hud-cyan); }
+@keyframes tapeScroll { 0% { transform: translateY(0); } 100% { transform: translateY(-200px); } }
+.tape-label-top { font-size: 9px; color: var(--hud-text-dim); text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 4px; }
+
+/* ── CIRCULAR PROGRESS ── */
+.circ-progress { position: relative; width: 100px; height: 100px; }
+.circ-progress svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.circ-track { fill: none; stroke: rgba(0,229,255,0.08); stroke-width: 4; }
+.circ-fill { fill: none; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 264; stroke-dashoffset: 264; }
+.circ-fill.cyan { stroke: var(--hud-cyan); animation: circFill1 2s ease-out forwards; filter: drop-shadow(0 0 4px rgba(0,229,255,0.5)); }
+.circ-fill.amber { stroke: var(--hud-amber); animation: circFill2 2s ease-out forwards; filter: drop-shadow(0 0 4px rgba(255,152,0,0.5)); }
+.circ-fill.green { stroke: var(--hud-green); animation: circFill3 2s ease-out forwards; filter: drop-shadow(0 0 4px rgba(0,230,118,0.5)); }
+@keyframes circFill1 { to { stroke-dashoffset: 66; } }
+@keyframes circFill2 { to { stroke-dashoffset: 132; } }
+@keyframes circFill3 { to { stroke-dashoffset: 26; } }
+.circ-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--hud-cyan); }
+
+/* ── MINI RADAR ── */
+.mini-radar { width: 100px; height: 100px; position: relative; border-radius: 50%; border: 1px solid rgba(0,229,255,0.2); overflow: hidden; background: radial-gradient(circle, rgba(0,229,255,0.03) 0%, transparent 70%); }
+.mini-radar .crosshair-h, .mini-radar .crosshair-v { position: absolute; background: rgba(0,229,255,0.1); }
+.mini-radar .crosshair-h { width: 100%; height: 1px; top: 50%; }
+.mini-radar .crosshair-v { height: 100%; width: 1px; left: 50%; }
+.mini-radar .sweep { position: absolute; top: 50%; left: 50%; width: 50%; height: 2px; background: linear-gradient(90deg, rgba(0,229,255,0.6), transparent); transform-origin: left center; animation: radarSweep 3s linear infinite; }
+@keyframes radarSweep { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.mini-radar .blip { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--hud-cyan); box-shadow: 0 0 6px var(--hud-cyan); animation: blipFade 3s ease-out infinite; }
+@keyframes blipFade { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0.2; } }
+.radar-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(0,229,255,0.06); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+
+/* ── WAVEFORM ── */
+.waveform-container { width: 240px; height: 60px; overflow: hidden; position: relative; border: 1px solid rgba(0,229,255,0.1); background: rgba(0,229,255,0.02); }
+.waveform-container svg { width: 480px; height: 60px; animation: waveScroll 2s linear infinite; }
+@keyframes waveScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-240px); } }
+.waveform-line { fill: none; stroke: var(--hud-cyan); stroke-width: 1.5; filter: drop-shadow(0 0 3px rgba(0,229,255,0.5)); }
+.waveform-center { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0,229,255,0.1); }
+
+/* ── SEGMENTED ARC ── */
+.seg-arc { position: relative; width: 180px; height: 110px; }
+.seg-arc svg { width: 100%; height: 100%; }
+.seg-arc .arc-label { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); font-size: 20px; color: var(--hud-cyan); text-shadow: 0 0 10px rgba(0,229,255,0.4); }
+.seg-arc .arc-unit { font-size: 10px; color: var(--hud-text-dim); }
+</style>
+</head>
+<body>
+
+<h1>AXIOM Intelligence HUD</h1>
+<p class="subtitle">Component Library // Indicators & Gauges // v1.0</p>
+
+<!-- CIRCULAR GAUGES -->
+<p class="section-label">01 // Circular Gauge</p>
+<div class="grid" style="margin-bottom:48px;">
+  <div class="component-box">
+    <div class="circular-gauge">
+      <div class="gauge-ticks" id="gaugeTicks1"></div>
+      <svg viewBox="0 0 140 140">
+        <circle class="gauge-track" cx="70" cy="70" r="65"/>
+        <circle class="gauge-fill" cx="70" cy="70" r="65" style="--offset:122"/>
+      </svg>
+      <div class="gauge-center">
+        <div class="gauge-value">73%</div>
+        <div class="gauge-unit">System Load</div>
+      </div>
+    </div>
+  </div>
+  <div class="component-box">
+    <div class="circular-gauge">
+      <svg viewBox="0 0 140 140">
+        <circle class="gauge-track" cx="70" cy="70" r="65"/>
+        <circle class="gauge-fill" cx="70" cy="70" r="65" style="--offset:20; stroke: var(--hud-green); filter: drop-shadow(0 0 6px rgba(0,230,118,0.5))"/>
+      </svg>
+      <div class="gauge-center">
+        <div class="gauge-value" style="color:var(--hud-green)">95%</div>
+        <div class="gauge-unit">Uptime</div>
+      </div>
+    </div>
+  </div>
+  <div class="component-box">
+    <div class="circular-gauge">
+      <svg viewBox="0 0 140 140">
+        <circle class="gauge-track" cx="70" cy="70" r="65"/>
+        <circle class="gauge-fill" cx="70" cy="70" r="65" style="--offset:326; stroke: var(--hud-red); filter: drop-shadow(0 0 6px rgba(255,23,68,0.5))"/>
+      </svg>
+      <div class="gauge-center">
+        <div class="gauge-value" style="color:var(--hud-red)">20%</div>
+        <div class="gauge-unit">Storage</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNAL BARS + STATUS DOTS -->
+<p class="section-label">02 // Signal Strength & Status Dots</p>
+<div class="grid">
+  <div class="component-box">
+    <div style="display:flex;gap:32px;align-items:flex-end;">
+      <div>
+        <div class="signal-bars">
+          <div class="bar active" style="height:6px"></div>
+          <div class="bar active" style="height:11px"></div>
+          <div class="bar active" style="height:16px"></div>
+          <div class="bar active" style="height:21px"></div>
+          <div class="bar active" style="height:26px"></div>
+        </div>
+        <div class="comp-label" style="margin-top:8px">5/5 Excellent</div>
+      </div>
+      <div>
+        <div class="signal-bars">
+          <div class="bar active" style="height:6px"></div>
+          <div class="bar active" style="height:11px"></div>
+          <div class="bar active" style="height:16px"></div>
+          <div class="bar" style="height:21px"></div>
+          <div class="bar" style="height:26px"></div>
+        </div>
+        <div class="comp-label" style="margin-top:8px">3/5 Fair</div>
+      </div>
+      <div>
+        <div class="signal-bars">
+          <div class="bar active" style="height:6px; background:var(--hud-red)"></div>
+          <div class="bar" style="height:11px"></div>
+          <div class="bar" style="height:16px"></div>
+          <div class="bar" style="height:21px"></div>
+          <div class="bar" style="height:26px"></div>
+        </div>
+        <div class="comp-label" style="margin-top:8px">1/5 Critical</div>
+      </div>
+    </div>
+  </div>
+  <div class="component-box">
+    <div class="dot-row">
+      <div class="status-indicator"><div class="status-dot-lg online"></div><div class="dot-label">Online</div></div>
+      <div class="status-indicator"><div class="status-dot-lg warning"></div><div class="dot-label">Warning</div></div>
+      <div class="status-indicator"><div class="status-dot-lg critical"></div><div class="dot-label">Critical</div></div>
+      <div class="status-indicator"><div class="status-dot-lg offline"></div><div class="dot-label">Offline</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONNECTION QUALITY + DEFCON -->
+<p class="section-label">03 // Connection Quality & Threat Level</p>
+<div class="grid">
+  <div class="component-box">
+    <div class="conn-meter">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:10px;color:var(--hud-text-dim);text-transform:uppercase;letter-spacing:1px;">Link Quality</span>
+        <span style="font-size:11px;color:var(--hud-green);">87%</span>
+      </div>
+      <div class="conn-bar-bg"><div class="conn-bar-fill" style="--w:87%;background:linear-gradient(90deg,var(--hud-green),var(--hud-cyan));"></div></div>
+      <div class="conn-labels"><span>Poor</span><span>Fair</span><span>Good</span><span>Excellent</span></div>
+    </div>
+    <div class="conn-meter" style="margin-top:16px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:10px;color:var(--hud-text-dim);text-transform:uppercase;letter-spacing:1px;">Bandwidth</span>
+        <span style="font-size:11px;color:var(--hud-amber);">42%</span>
+      </div>
+      <div class="conn-bar-bg"><div class="conn-bar-fill" style="--w:42%;background:linear-gradient(90deg,var(--hud-amber),var(--hud-gold));"></div></div>
+    </div>
+  </div>
+  <div class="component-box">
+    <div class="comp-label" style="margin-bottom:8px">Threat Level</div>
+    <div class="defcon">
+      <div class="defcon-level" data-level="1">1</div>
+      <div class="defcon-level" data-level="2">2</div>
+      <div class="defcon-level active" data-level="3">3</div>
+      <div class="defcon-level" data-level="4">4</div>
+      <div class="defcon-level" data-level="5">5</div>
+    </div>
+    <div style="margin-top:8px;font-size:10px;color:var(--hud-amber);text-transform:uppercase;letter-spacing:2px;text-align:center;">DEFCON 3 — Elevated</div>
+  </div>
+</div>
+
+<!-- BATTERY + COMPASS -->
+<p class="section-label">04 // Battery & Compass</p>
+<div class="grid">
+  <div class="component-box">
+    <div>
+      <div class="battery" style="margin-bottom:12px;">
+        <div class="battery-body"><div class="battery-fill" style="--w:82%;background:var(--hud-green);"></div></div>
+        <div class="battery-tip"></div>
+        <div class="battery-pct" style="color:var(--hud-green)">82%</div>
+      </div>
+      <div class="battery" style="margin-bottom:12px;">
+        <div class="battery-body"><div class="battery-fill" style="--w:45%;background:var(--hud-amber);"></div></div>
+        <div class="battery-tip"></div>
+        <div class="battery-pct" style="color:var(--hud-amber)">45%</div>
+      </div>
+      <div class="battery">
+        <div class="battery-body" style="border-color:var(--hud-red);"><div class="battery-fill" style="--w:12%;background:var(--hud-red);"></div></div>
+        <div class="battery-tip" style="background:var(--hud-red);"></div>
+        <div class="battery-pct" style="color:var(--hud-red)">12%</div>
+      </div>
+    </div>
+  </div>
+  <div class="component-box">
+    <div class="compass">
+      <svg viewBox="0 0 160 160">
+        <!-- Outer ring -->
+        <circle cx="80" cy="80" r="74" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="1"/>
+        <circle cx="80" cy="80" r="55" fill="none" stroke="rgba(0,229,255,0.08)" stroke-width="1"/>
+        <circle cx="80" cy="80" r="35" fill="none" stroke="rgba(0,229,255,0.05)" stroke-width="1"/>
+        <!-- Cardinal points -->
+        <text x="80" y="18" text-anchor="middle" fill="#00e5ff" font-family="Share Tech Mono" font-size="11">N</text>
+        <text x="80" y="152" text-anchor="middle" fill="rgba(0,229,255,0.4)" font-family="Share Tech Mono" font-size="10">S</text>
+        <text x="148" y="84" text-anchor="middle" fill="rgba(0,229,255,0.4)" font-family="Share Tech Mono" font-size="10">E</text>
+        <text x="12" y="84" text-anchor="middle" fill="rgba(0,229,255,0.4)" font-family="Share Tech Mono" font-size="10">W</text>
+        <!-- Tick marks -->
+        <line x1="80" y1="8" x2="80" y2="14" stroke="#00e5ff" stroke-width="2"/>
+        <line x1="80" y1="146" x2="80" y2="152" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+        <line x1="8" y1="80" x2="14" y2="80" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+        <line x1="146" y1="80" x2="152" y2="80" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+        <!-- Bearing needle -->
+        <line x1="80" y1="80" x2="105" y2="35" stroke="#00e5ff" stroke-width="2" stroke-linecap="round">
+          <animateTransform attributeName="transform" type="rotate" from="0 80 80" to="360 80 80" dur="30s" repeatCount="indefinite"/>
+        </line>
+        <circle cx="80" cy="80" r="3" fill="#00e5ff"/>
+      </svg>
+      <div class="compass-bearing">042<span class="deg">&deg;</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAPE GAUGE + CIRCULAR PROGRESS -->
+<p class="section-label">05 // Tape Gauge & Circular Progress</p>
+<div class="grid">
+  <div class="component-box">
+    <div class="tape-label-top">ALT (ft)</div>
+    <div class="tape-gauge">
+      <div class="tape-scale" id="tapeScale"></div>
+      <div class="tape-pointer"></div>
+    </div>
+  </div>
+  <div class="component-box" style="flex-direction:row; gap:20px; flex-wrap:wrap; justify-content:center;">
+    <div style="text-align:center;">
+      <div class="circ-progress">
+        <svg viewBox="0 0 90 90"><circle class="circ-track" cx="45" cy="45" r="42"/><circle class="circ-fill cyan" cx="45" cy="45" r="42"/></svg>
+        <div class="circ-center">75%</div>
+      </div>
+      <div class="comp-label" style="margin-top:6px">CPU</div>
+    </div>
+    <div style="text-align:center;">
+      <div class="circ-progress">
+        <svg viewBox="0 0 90 90"><circle class="circ-track" cx="45" cy="45" r="42"/><circle class="circ-fill amber" cx="45" cy="45" r="42"/></svg>
+        <div class="circ-center" style="color:var(--hud-amber)">50%</div>
+      </div>
+      <div class="comp-label" style="margin-top:6px">MEM</div>
+    </div>
+    <div style="text-align:center;">
+      <div class="circ-progress">
+        <svg viewBox="0 0 90 90"><circle class="circ-track" cx="45" cy="45" r="42"/><circle class="circ-fill green" cx="45" cy="45" r="42"/></svg>
+        <div class="circ-center" style="color:var(--hud-green)">90%</div>
+      </div>
+      <div class="comp-label" style="margin-top:6px">NET</div>
+    </div>
+  </div>
+</div>
+
+<!-- MINI RADAR + WAVEFORM -->
+<p class="section-label">06 // Mini Radar & Waveform</p>
+<div class="grid">
+  <div class="component-box">
+    <div class="mini-radar">
+      <div class="radar-ring" style="width:66px;height:66px;"></div>
+      <div class="radar-ring" style="width:33px;height:33px;"></div>
+      <div class="crosshair-h"></div>
+      <div class="crosshair-v"></div>
+      <div class="sweep"></div>
+      <div class="blip" style="top:25%;left:60%;animation-delay:0.5s;"></div>
+      <div class="blip" style="top:65%;left:30%;animation-delay:1.5s;"></div>
+      <div class="blip" style="top:40%;left:72%;animation-delay:2.2s;"></div>
+    </div>
+    <div class="comp-label">Proximity Radar</div>
+  </div>
+  <div class="component-box">
+    <div class="waveform-container">
+      <div class="waveform-center"></div>
+      <svg viewBox="0 0 480 60" preserveAspectRatio="none" id="waveformSvg"></svg>
+    </div>
+    <div class="comp-label">Heartbeat / Signal Monitor</div>
+  </div>
+</div>
+
+<!-- SEGMENTED ARC -->
+<p class="section-label">07 // Segmented Arc Gauge</p>
+<div class="grid">
+  <div class="component-box">
+    <div class="seg-arc">
+      <svg viewBox="0 0 180 110">
+        <!-- Background segments -->
+        <g transform="translate(90,100)">
+          <path d="M-75,-5 A75,75 0 0,1 -65,-38" stroke="rgba(0,229,255,0.1)" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <path d="M-60,-45 A75,75 0 0,1 -38,-65" stroke="rgba(0,229,255,0.1)" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <path d="M-30,-69 A75,75 0 0,1 0,-75" stroke="rgba(0,229,255,0.1)" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <path d="M8,-75 A75,75 0 0,1 38,-65" stroke="rgba(0,229,255,0.1)" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <path d="M45,-58 A75,75 0 0,1 65,-38" stroke="rgba(0,229,255,0.1)" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <path d="M69,-30 A75,75 0 0,1 75,-5" stroke="rgba(0,229,255,0.1)" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <!-- Active segments -->
+          <path d="M-75,-5 A75,75 0 0,1 -65,-38" stroke="var(--hud-green)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9">
+            <animate attributeName="opacity" values="0;0.9" dur="0.5s" fill="freeze"/>
+          </path>
+          <path d="M-60,-45 A75,75 0 0,1 -38,-65" stroke="var(--hud-green)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9">
+            <animate attributeName="opacity" values="0;0.9" dur="0.5s" begin="0.15s" fill="freeze"/>
+          </path>
+          <path d="M-30,-69 A75,75 0 0,1 0,-75" stroke="var(--hud-cyan)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9">
+            <animate attributeName="opacity" values="0;0.9" dur="0.5s" begin="0.3s" fill="freeze"/>
+          </path>
+          <path d="M8,-75 A75,75 0 0,1 38,-65" stroke="var(--hud-amber)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9">
+            <animate attributeName="opacity" values="0;0.9" dur="0.5s" begin="0.45s" fill="freeze"/>
+          </path>
+        </g>
+        <!-- Min/Max labels -->
+        <text x="8" y="108" fill="var(--hud-text-dim)" font-family="Share Tech Mono" font-size="9">0</text>
+        <text x="164" y="108" fill="var(--hud-text-dim)" font-family="Share Tech Mono" font-size="9">100</text>
+      </svg>
+      <div class="arc-label">67 <span class="arc-unit">RPM</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Tape gauge marks
+const tape = document.getElementById('tapeScale');
+for (let i = 40; i >= 0; i--) {
+  const mark = document.createElement('div');
+  mark.className = 'tape-mark' + (i % 5 === 0 ? ' major' : '');
+  mark.textContent = i % 5 === 0 ? (i * 100) : '';
+  tape.appendChild(mark);
+}
+
+// Waveform path
+const svg = document.getElementById('waveformSvg');
+let d = 'M0,30 ';
+for (let x = 0; x < 480; x += 2) {
+  const noise = Math.sin(x * 0.05) * 8 + Math.sin(x * 0.13) * 5 + Math.sin(x * 0.31) * 3;
+  // Heartbeat spike pattern
+  const beat = (x % 120 < 10) ? Math.sin((x % 120) / 10 * Math.PI) * 20 : 0;
+  d += `L${x},${30 - noise - beat} `;
+}
+const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+path.setAttribute('d', d);
+path.setAttribute('class', 'waveform-line');
+svg.appendChild(path);
+
+// Gauge tick marks
+const ticksContainer = document.getElementById('gaugeTicks1');
+if (ticksContainer) {
+  for (let i = 0; i < 36; i++) {
+    const tick = document.createElement('div');
+    tick.className = 'tick';
+    tick.style.transform = `rotate(${i * 10}deg)`;
+    ticksContainer.appendChild(tick);
+  }
+}
+</script>
+</body>
+</html>

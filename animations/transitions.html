@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM Transitions</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--hud-cyan:#00e5ff;--hud-amber:#ff9800;--hud-red:#ff1744;--hud-green:#00e676;--hud-gold:#ffd740;--hud-bg:#050a0e}
+body{background:var(--hud-bg);color:var(--hud-cyan);font-family:'Share Tech Mono',monospace}
+h1{text-align:center;padding:40px 0 10px;font-size:28px;letter-spacing:6px;text-transform:uppercase;text-shadow:0 0 20px rgba(0,229,255,.4)}
+.subtitle{text-align:center;color:var(--hud-amber);font-size:12px;letter-spacing:4px;margin-bottom:40px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;padding:0 40px 60px;max-width:1400px;margin:0 auto}
+.panel{background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.15);border-radius:4px;padding:20px;position:relative}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--hud-cyan),transparent)}
+.panel-title{font-size:11px;letter-spacing:3px;color:var(--hud-amber);margin-bottom:10px;text-transform:uppercase}
+.demo-box{position:relative;height:280px;overflow:hidden;border:1px solid rgba(0,229,255,.1);border-radius:2px;background:#080e14}
+.content-before,.content-after{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}
+.content-before{background:#0a1520;z-index:1}
+.content-after{background:#050a0e;z-index:0}
+.content-before span,.content-after span{font-size:14px;letter-spacing:3px;opacity:.7}
+.content-before span{color:var(--hud-red)}
+.content-after span{color:var(--hud-green)}
+.content-after .big{font-size:22px;color:var(--hud-cyan);opacity:1}
+.play-btn{display:block;margin:12px auto 0;padding:8px 30px;background:transparent;border:1px solid var(--hud-cyan);color:var(--hud-cyan);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;cursor:pointer;transition:all .2s}
+.play-btn:hover{background:rgba(0,229,255,.1);box-shadow:0 0 15px rgba(0,229,255,.2)}
+.play-btn:active{transform:scale(.97)}
+</style>
+</head>
+<body>
+<h1>AXIOM Transitions</h1>
+<div class="subtitle">// PAGE & SECTION TRANSITION EFFECTS //</div>
+<div class="grid">
+
+<!-- 1. HUD SCAN WIPE -->
+<div class="panel">
+<div class="panel-title">01 // HUD Scan Wipe</div>
+<div class="demo-box" id="scan-box">
+<div class="content-before"><span>STATE A</span><span style="font-size:10px;opacity:.4">AWAITING SCAN</span></div>
+<div class="content-after"><span class="big">SCAN COMPLETE</span><span>SYSTEM ONLINE</span></div>
+</div>
+<button class="play-btn" onclick="playScanWipe()">PLAY</button>
+</div>
+
+<!-- 2. GRID DISSOLVE -->
+<div class="panel">
+<div class="panel-title">02 // Grid Dissolve</div>
+<div class="demo-box" id="grid-box">
+<div class="content-before"><span>STATE A</span><span style="font-size:10px;opacity:.4">GRID INTACT</span></div>
+<div class="content-after"><span class="big">REASSEMBLED</span><span>DATA INTACT</span></div>
+</div>
+<button class="play-btn" onclick="playGridDissolve()">PLAY</button>
+</div>
+
+<!-- 3. BRACKET CLOSE -->
+<div class="panel">
+<div class="panel-title">03 // Bracket Close</div>
+<div class="demo-box" id="bracket-box">
+<div class="content-before"><span>STATE A</span><span style="font-size:10px;opacity:.4">UNFRAMED</span></div>
+<div class="content-after"><span class="big">LOCKED ON</span><span>TARGET ACQUIRED</span></div>
+</div>
+<button class="play-btn" onclick="playBracketClose()">PLAY</button>
+</div>
+
+<!-- 4. RADAR REVEAL -->
+<div class="panel">
+<div class="panel-title">04 // Radar Reveal</div>
+<div class="demo-box" id="radar-box">
+<div class="content-before"><span>STATE A</span><span style="font-size:10px;opacity:.4">SCANNING</span></div>
+<div class="content-after"><span class="big">AREA CLEAR</span><span>NO THREATS</span></div>
+</div>
+<button class="play-btn" onclick="playRadarReveal()">PLAY</button>
+</div>
+
+<!-- 5. GLITCH TRANSITION -->
+<div class="panel">
+<div class="panel-title">05 // Glitch Transition</div>
+<div class="demo-box" id="glitch-box">
+<div class="content-before"><span>STATE A</span><span style="font-size:10px;opacity:.4">STABLE SIGNAL</span></div>
+<div class="content-after"><span class="big">SIGNAL RESTORED</span><span>LINK ACTIVE</span></div>
+</div>
+<button class="play-btn" onclick="playGlitchTransition()">PLAY</button>
+</div>
+
+<!-- 6. MATRIX RAIN FADE -->
+<div class="panel">
+<div class="panel-title">06 // Matrix Rain Fade</div>
+<div class="demo-box" id="matrix-box">
+<div class="content-before"><span>STATE A</span><span style="font-size:10px;opacity:.4">DECRYPTING</span></div>
+<div class="content-after"><span class="big">DECRYPTED</span><span>ACCESS GRANTED</span></div>
+<canvas id="matrix-canvas" style="position:absolute;inset:0;z-index:5;pointer-events:none"></canvas>
+</div>
+<button class="play-btn" onclick="playMatrixRain()">PLAY</button>
+</div>
+
+</div>
+
+<script>
+function resetBox(id){
+const box=document.getElementById(id);
+const before=box.querySelector('.content-before');
+const after=box.querySelector('.content-after');
+before.style.cssText='';after.style.cssText='';
+// Remove any overlays
+box.querySelectorAll('.overlay,.scan-line,.grid-cell,.bracket,.radar-mask,.glitch-slice').forEach(e=>e.remove());
+return{box,before,after};
+}
+
+// 1. SCAN WIPE
+function playScanWipe(){
+const{box,before,after}=resetBox('scan-box');
+after.style.zIndex='0';before.style.zIndex='1';
+const line=document.createElement('div');
+line.className='overlay scan-line';
+line.style.cssText='position:absolute;top:0;bottom:0;left:0;width:3px;background:#00e5ff;z-index:3;box-shadow:0 0 20px #00e5ff,0 0 60px #00e5ff;transition:none';
+box.appendChild(line);
+before.style.clipPath='inset(0 0 0 0)';
+before.style.transition='clip-path 1.2s ease-in-out';
+let start=null;
+function anim(ts){
+if(!start)start=ts;
+const p=Math.min((ts-start)/1200,1);
+const x=p*100;
+line.style.left=x+'%';
+before.style.clipPath=`inset(0 0 0 ${x}%)`;
+if(p<1)requestAnimationFrame(anim);
+else{line.style.opacity='0';after.style.zIndex='2'}
+}
+requestAnimationFrame(anim);
+}
+
+// 2. GRID DISSOLVE
+function playGridDissolve(){
+const{box,before,after}=resetBox('grid-box');
+before.style.display='none';after.style.opacity='0';after.style.zIndex='2';
+const cols=10,rows=8;
+const w=box.offsetWidth/cols,h=box.offsetHeight/rows;
+const cells=[];
+for(let r=0;r<rows;r++){
+for(let c=0;c<cols;c++){
+const cell=document.createElement('div');
+cell.className='overlay grid-cell';
+cell.style.cssText=`position:absolute;left:${c*w}px;top:${r*h}px;width:${w}px;height:${h}px;background:#0a1520;border:1px solid rgba(0,229,255,.1);z-index:3;transition:transform .8s ease,opacity .8s ease;`;
+box.appendChild(cell);
+cells.push({el:cell,delay:Math.random()*500});
+}
+}
+// Scatter
+setTimeout(()=>{
+cells.forEach(c=>{
+setTimeout(()=>{
+const tx=(Math.random()-.5)*300,ty=(Math.random()-.5)*300,rot=Math.random()*360;
+c.el.style.transform=`translate(${tx}px,${ty}px) rotate(${rot}deg) scale(0)`;
+c.el.style.opacity='0';
+},c.delay);
+});
+after.style.transition='opacity .8s ease .5s';
+after.style.opacity='1';
+},100);
+}
+
+// 3. BRACKET CLOSE
+function playBracketClose(){
+const{box,before,after}=resetBox('bracket-box');
+before.style.transition='opacity .3s ease .8s';after.style.zIndex='2';after.style.opacity='0';
+const size=40;const bw=3;
+const corners=[
+{top:'0',left:'0',borderTop:bw+'px solid #00e5ff',borderLeft:bw+'px solid #00e5ff',transformOrigin:'top left',startX:'-60px',startY:'-60px'},
+{top:'0',right:'0',borderTop:bw+'px solid #00e5ff',borderRight:bw+'px solid #00e5ff',transformOrigin:'top right',startX:'60px',startY:'-60px'},
+{bottom:'0',left:'0',borderBottom:bw+'px solid #00e5ff',borderLeft:bw+'px solid #00e5ff',transformOrigin:'bottom left',startX:'-60px',startY:'60px'},
+{bottom:'0',right:'0',borderBottom:bw+'px solid #00e5ff',borderRight:bw+'px solid #00e5ff',transformOrigin:'bottom right',startX:'60px',startY:'60px'},
+];
+corners.forEach(c=>{
+const el=document.createElement('div');el.className='overlay bracket';
+el.style.cssText=`position:absolute;width:${size}px;height:${size}px;z-index:4;transition:transform .6s cubic-bezier(.2,.8,.3,1),opacity .3s;opacity:0;`;
+['top','left','right','bottom','borderTop','borderLeft','borderRight','borderBottom'].forEach(p=>{if(c[p])el.style[p]=c[p]});
+el.style.transform=`translate(${c.startX},${c.startY})`;
+box.appendChild(el);
+setTimeout(()=>{el.style.opacity='1';el.style.transform='translate(0,0)'},100);
+});
+setTimeout(()=>{before.style.opacity='0';after.style.transition='opacity .4s ease';after.style.opacity='1'},800);
+// Corner glow
+setTimeout(()=>{
+box.querySelectorAll('.bracket').forEach(b=>{b.style.boxShadow='0 0 15px rgba(0,229,255,.4)'});
+},600);
+}
+
+// 4. RADAR REVEAL
+function playRadarReveal(){
+const{box,before,after}=resetBox('radar-box');
+after.style.zIndex='2';
+const cx=box.offsetWidth/2,cy=box.offsetHeight/2;
+const maxR=Math.sqrt(cx*cx+cy*cy);
+before.style.zIndex='3';
+let start=null;
+function anim(ts){
+if(!start)start=ts;
+const p=Math.min((ts-start)/1500,1);
+const r=p*maxR;
+before.style.clipPath=`circle(${maxR-r}px at ${cx}px ${cy}px)`;
+if(p<1)requestAnimationFrame(anim);
+}
+requestAnimationFrame(anim);
+}
+
+// 5. GLITCH TRANSITION
+function playGlitchTransition(){
+const{box,before,after}=resetBox('glitch-box');
+after.style.zIndex='0';before.style.zIndex='2';
+const slices=12;
+let frame=0;const dur=40;
+function glitchFrame(){
+if(frame>dur){
+before.style.display='none';after.style.zIndex='2';
+box.querySelectorAll('.glitch-slice').forEach(e=>e.remove());
+return;
+}
+box.querySelectorAll('.glitch-slice').forEach(e=>e.remove());
+const intensity=frame<dur*0.7?frame/dur:1-(frame-dur*0.7)/(dur*0.3);
+if(frame>dur*0.6){before.style.opacity=1-(frame-dur*0.6)/(dur*0.4)}
+for(let i=0;i<slices;i++){
+const y=i/slices*100;const h=100/slices;
+const slice=document.createElement('div');slice.className='overlay glitch-slice';
+const dx=(Math.random()-.5)*60*intensity;
+const showRed=Math.random()>.6;const showBlue=Math.random()>.6;
+slice.style.cssText=`position:absolute;left:${dx}px;top:${y}%;width:100%;height:${h}%;background:${showRed?'rgba(255,23,68,.15)':showBlue?'rgba(0,229,255,.15)':'transparent'};z-index:4;border-top:${Math.random()>.7?'1px solid rgba(0,229,255,.3)':'none'};`;
+box.appendChild(slice);
+}
+frame++;
+requestAnimationFrame(glitchFrame);
+}
+glitchFrame();
+}
+
+// 6. MATRIX RAIN FADE
+function playMatrixRain(){
+const{box,before,after}=resetBox('matrix-box');
+const canvas=document.getElementById('matrix-canvas');
+canvas.width=box.offsetWidth;canvas.height=box.offsetHeight;
+const ctx=canvas.getContext('2d');
+before.style.zIndex='1';after.style.zIndex='2';after.style.opacity='0';
+canvas.style.zIndex='5';
+const chars='0123456789ABCDEF';
+const fontSize=12;const cols=Math.floor(canvas.width/fontSize);
+const drops=new Array(cols).fill(0).map(()=>-Math.random()*20|0);
+let frame=0;const totalFrames=120;
+function draw(){
+if(frame>totalFrames){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+before.style.display='none';after.style.opacity='1';
+return;
+}
+ctx.fillStyle='rgba(5,10,14,.15)';
+ctx.fillRect(0,0,canvas.width,canvas.height);
+const progress=frame/totalFrames;
+ctx.font=fontSize+'px Share Tech Mono';
+for(let i=0;i<drops.length;i++){
+const ch=chars[Math.random()*chars.length|0];
+const color=Math.random()>.5?'#00e5ff':'#ff9800';
+ctx.fillStyle=color;
+ctx.globalAlpha=.6+Math.random()*.4;
+ctx.fillText(ch,i*fontSize,drops[i]*fontSize);
+ctx.globalAlpha=1;
+if(drops[i]*fontSize>canvas.height&&Math.random()>.98)drops[i]=0;
+drops[i]++;
+}
+if(progress>.4){
+before.style.opacity=1-(progress-.4)/.4;
+}
+if(progress>.6){
+after.style.transition='none';after.style.opacity=(progress-.6)/.4;
+ctx.globalAlpha=1-((progress-.6)/.4);
+}
+frame++;
+requestAnimationFrame(draw);
+}
+draw();
+}
+</script>
+</body>
+</html>
