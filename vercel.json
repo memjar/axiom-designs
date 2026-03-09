@@ -1,0 +1,17 @@
+{
+  "framework": null,
+  "buildCommand": "true",
+  "outputDirectory": ".",
+  "installCommand": "true",
+  "rewrites": [
+    { "source": "/", "destination": "/showcase/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
+      ]
+    }
+  ]
+}
