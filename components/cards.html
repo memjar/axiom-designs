@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM — Intel Cards</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050a0e;--s:#0a1118;--el:#0f1a24;--c:#00e5ff;--a:#ff9800;--g:#00e676;--r:#ff1744;
+  --text:#c8dce8;--dim:#4a6a7a;--border:rgba(0,229,255,0.12);--glow:rgba(0,229,255,0.25);
+  --font:'Share Tech Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden;padding:44px 0 32px 200px}
+body::before{content:'';position:fixed;inset:0;
+  background-image:repeating-linear-gradient(0deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px),
+  repeating-linear-gradient(90deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px);
+  pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);
+  pointer-events:none;z-index:9999}
+
+.topbar{position:fixed;top:0;left:0;right:0;height:44px;background:rgba(10,17,24,0.94);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;z-index:100;backdrop-filter:blur(16px)}
+.topbar::before,.topbar::after{content:'';position:absolute;width:12px;height:12px;border-color:var(--c);border-style:solid}
+.topbar::before{top:0;left:0;border-width:2px 0 0 2px}
+.topbar::after{bottom:0;right:0;border-width:0 2px 2px 0}
+.topbar-title{font-size:13px;color:var(--c);letter-spacing:.35em;text-transform:uppercase}
+.topbar-title b{color:var(--a)}
+.topbar-right{display:flex;align-items:center;gap:20px;font-size:10px;color:var(--dim);letter-spacing:.12em}
+.dot-live{width:6px;height:6px;border-radius:50%;background:var(--g);display:inline-block;box-shadow:0 0 8px var(--g);animation:pulse 2s infinite;margin-right:4px}
+.clock{color:var(--c);font-size:11px}
+
+.sidebar{position:fixed;top:44px;left:0;width:200px;bottom:32px;background:rgba(10,17,24,0.96);
+  border-right:1px solid var(--border);z-index:90;padding:12px 0;overflow-y:auto}
+.nav-sec{padding:12px 14px 4px;font-size:8px;color:var(--a);letter-spacing:.25em;text-transform:uppercase}
+.nav-a{display:block;padding:6px 14px 6px 20px;font-size:10px;color:var(--dim);letter-spacing:.1em;
+  text-decoration:none;cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-transform:uppercase}
+.nav-a:hover,.nav-a.active{color:var(--text);background:rgba(0,229,255,0.04);border-left-color:var(--c)}
+
+.ticker{position:fixed;bottom:0;left:0;right:0;height:32px;background:rgba(10,17,24,0.96);
+  border-top:1px solid var(--border);overflow:hidden;z-index:100;display:flex;align-items:center}
+.ticker-scroll{white-space:nowrap;font-size:10px;color:var(--dim);letter-spacing:.1em;animation:tickerScroll 40s linear infinite}
+.ticker-scroll .hl{color:var(--c)}.ticker-scroll .am{color:var(--a)}
+
+.main{padding:32px;position:relative;z-index:1}
+.sec{margin-bottom:56px}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.sec-id{font-size:9px;color:var(--bg);background:var(--c);padding:2px 8px;letter-spacing:.15em}
+.sec-t{font-size:13px;color:var(--c);letter-spacing:.2em;text-transform:uppercase}
+.sec-desc{font-size:10px;color:var(--dim);margin-bottom:20px;letter-spacing:.05em;line-height:1.7}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:1200px){.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:1000px){.g2,.g3{grid-template-columns:1fr}}
+
+/* ══════════════════════════════════════════
+   CARD SYSTEM
+══════════════════════════════════════════ */
+
+/* Base card */
+.intel-card{
+  background:var(--s);border:1px solid var(--border);
+  position:relative;overflow:hidden;
+  transition:border-color .2s,box-shadow .2s;
+}
+.intel-card:hover{border-color:rgba(0,229,255,0.25);box-shadow:0 0 20px rgba(0,229,255,0.06)}
+/* Corner brackets */
+.intel-card::before,.intel-card::after{
+  content:'';position:absolute;width:12px;height:12px;
+  border-color:var(--c);border-style:solid;pointer-events:none;
+  transition:width .2s,height .2s;z-index:2;
+}
+.intel-card::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.intel-card::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+.intel-card:hover::before,.intel-card:hover::after{width:18px;height:18px}
+
+/* Card header */
+.ic-head{
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ic-label{font-size:8px;color:var(--a);letter-spacing:.2em;text-transform:uppercase}
+.ic-meta{font-size:8px;color:var(--dim);letter-spacing:.1em}
+/* Card body */
+.ic-body{padding:20px 16px}
+/* Card footer */
+.ic-foot{
+  padding:8px 16px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:9px;color:var(--dim);letter-spacing:.08em;
+}
+
+/* Scan line animation on hover */
+.intel-card .card-scan{
+  position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--c),transparent);
+  opacity:0;transition:opacity .2s;
+  animation:scanHoriz 2s ease-in-out infinite;
+}
+.intel-card:hover .card-scan{opacity:1}
+
+/* ── BASIC CARD ── */
+.card-basic .ic-body p{font-size:11px;color:var(--dim);line-height:1.8;letter-spacing:.05em}
+
+/* ── STAT CARD ── */
+.card-stat .ic-body{text-align:center;padding:24px 16px}
+.stat-num{font-size:42px;line-height:1;letter-spacing:.05em;margin-bottom:6px}
+.stat-unit{font-size:14px;color:var(--dim);margin-left:4px}
+.stat-lbl{font-size:9px;color:var(--dim);letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px}
+.stat-change{font-size:9px;letter-spacing:.1em;padding:2px 8px;display:inline-block}
+.stat-change.up{color:var(--g);background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2)}
+.stat-change.down{color:var(--r);background:rgba(255,23,68,0.08);border:1px solid rgba(255,23,68,0.2)}
+.stat-change.flat{color:var(--dim);background:rgba(0,229,255,0.04);border:1px solid var(--border)}
+.stat-bar-track{height:2px;background:rgba(0,229,255,0.1);margin-top:14px;position:relative;overflow:hidden}
+.stat-bar-fill{position:absolute;top:0;left:0;height:100%;transition:width .4s}
+
+/* ── STATUS CARD ── */
+.card-status .status-row{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;border-bottom:1px solid rgba(0,229,255,0.05);
+}
+.card-status .status-row:last-child{border-bottom:none}
+.status-ind{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.status-ind.green{background:var(--g);box-shadow:0 0 6px var(--g)}
+.status-ind.amber{background:var(--a);box-shadow:0 0 6px var(--a)}
+.status-ind.red{background:var(--r);box-shadow:0 0 6px var(--r);animation:alertPulse 1.5s infinite}
+.status-ind.dim{background:var(--dim)}
+.status-name{font-size:10px;color:var(--text);letter-spacing:.08em;flex:1}
+.status-val{font-size:10px;color:var(--dim);letter-spacing:.06em}
+/* Mini sparkline */
+.sparkline{display:flex;gap:2px;align-items:flex-end;height:20px;margin-left:auto;margin-right:8px}
+.spark-bar{width:3px;background:var(--c);opacity:.5;border-radius:1px 1px 0 0}
+
+/* ── PROFILE / ENTITY CARD ── */
+.card-profile{min-width:0}
+.profile-avatar{
+  width:56px;height:56px;
+  background:var(--el);border:1px solid var(--border);
+  position:relative;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;overflow:hidden;
+}
+.profile-avatar::before,.profile-avatar::after{
+  content:'';position:absolute;width:8px;height:8px;border-color:var(--c);border-style:solid;
+}
+.profile-avatar::before{top:0;left:0;border-width:1px 0 0 1px}
+.profile-avatar::after{bottom:0;right:0;border-width:0 1px 1px 0}
+.avatar-initials{font-size:18px;color:var(--c);letter-spacing:.1em}
+.profile-top{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px}
+.profile-name{font-size:13px;color:var(--c);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px}
+.profile-role{font-size:9px;color:var(--a);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+.profile-id{font-size:9px;color:var(--dim);letter-spacing:.08em}
+.profile-badge{
+  font-size:8px;letter-spacing:.12em;text-transform:uppercase;
+  padding:2px 8px;margin-top:6px;display:inline-block;
+}
+.profile-badge.active{color:var(--g);border:1px solid rgba(0,230,118,0.3)}
+.profile-badge.standby{color:var(--a);border:1px solid rgba(255,152,0,0.3)}
+.profile-badge.offline{color:var(--dim);border:1px solid var(--border)}
+.profile-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;border-top:1px solid var(--border);margin-top:0}
+.profile-stat{
+  padding:12px 12px 10px;background:var(--el);
+  text-align:center;
+}
+.profile-stat-v{font-size:18px;color:var(--c);line-height:1;margin-bottom:4px}
+.profile-stat-l{font-size:8px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
+.profile-data{display:flex;flex-direction:column;gap:0;margin-bottom:0}
+.profile-data-row{
+  display:flex;justify-content:space-between;
+  font-size:9px;padding:5px 0;border-bottom:1px solid rgba(0,229,255,0.04);
+  letter-spacing:.06em;
+}
+.profile-data-row span:first-child{color:var(--dim);text-transform:uppercase}
+.profile-data-row span:last-child{color:var(--text)}
+
+/* ── ALERT CARD VARIANT ── */
+.intel-card.card-alert{border-color:rgba(255,23,68,0.35)}
+.intel-card.card-alert::before,.intel-card.card-alert::after{border-color:var(--r)}
+.intel-card.card-alert .card-scan{background:linear-gradient(90deg,transparent,var(--r),transparent)}
+.intel-card.card-alert:hover{border-color:rgba(255,23,68,0.6);box-shadow:0 0 20px rgba(255,23,68,0.1)}
+
+/* ── AMBER CARD VARIANT ── */
+.intel-card.card-warn{border-color:rgba(255,152,0,0.25)}
+.intel-card.card-warn::before,.intel-card.card-warn::after{border-color:var(--a)}
+.intel-card.card-warn .card-scan{background:linear-gradient(90deg,transparent,var(--a),transparent)}
+
+/* ── GREEN CARD VARIANT ── */
+.intel-card.card-success{border-color:rgba(0,230,118,0.2)}
+.intel-card.card-success::before,.intel-card.card-success::after{border-color:var(--g)}
+.intel-card.card-success .card-scan{background:linear-gradient(90deg,transparent,var(--g),transparent)}
+
+/* ── FEATURED / WIDE CARD ── */
+.card-featured{display:flex;flex-direction:column}
+.card-featured .ic-body{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.card-featured-main{flex:2;min-width:180px}
+.card-featured-side{flex:1;min-width:120px;display:flex;flex-direction:column;gap:12px}
+
+/* ── LOADING CARD ── */
+.skel-line{height:8px;background:rgba(0,229,255,0.06);position:relative;overflow:hidden;margin-bottom:10px;border-radius:1px}
+.skel-line::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(0,229,255,0.1),transparent);animation:shimmer 1.5s infinite}
+.skel-circle{border-radius:50%}
+
+/* ── DATA BAR ── */
+.ic-bar-track{height:2px;background:rgba(0,229,255,0.08);margin-bottom:4px}
+.ic-bar-fill{height:100%;transition:width .4s}
+.ic-bar-label{display:flex;justify-content:space-between;font-size:9px;color:var(--dim);letter-spacing:.08em;margin-bottom:10px}
+
+/* ── KEYFRAMES ── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes alertPulse{0%,100%{opacity:1;box-shadow:0 0 6px var(--r)}50%{opacity:.4;box-shadow:none}}
+@keyframes tickerScroll{from{transform:translateX(100%)}to{transform:translateX(-200%)}}
+@keyframes scanHoriz{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes waveform{0%,100%{height:4px}50%{height:16px}}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:16px">
+    <span class="topbar-title">AXIOM <b>// INTEL CARDS</b></span>
+  </div>
+  <div class="topbar-right">
+    <span><span class="dot-live"></span>SYSTEM ONLINE</span>
+    <span class="clock" id="clock"></span>
+    <a href="../showcase/index.html" style="color:var(--dim);text-decoration:none;letter-spacing:.1em;font-size:10px">← BACK</a>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="nav-sec">// cards</div>
+  <a class="nav-a active" href="#basic">Basic Cards</a>
+  <a class="nav-a" href="#stat">Stat Cards</a>
+  <a class="nav-a" href="#status">Status Cards</a>
+  <a class="nav-a" href="#profile">Profile Cards</a>
+  <a class="nav-a" href="#variants">Variants</a>
+  <a class="nav-a" href="#loading">Loading States</a>
+  <div class="nav-sec">// system</div>
+  <a class="nav-a" href="../showcase/index.html">Design System</a>
+  <a class="nav-a" href="forms.html">Forms</a>
+  <a class="nav-a" href="modals.html">Modals</a>
+  <a class="nav-a" href="tables.html">Tables</a>
+  <a class="nav-a" href="../layouts/intel-dashboard.html">Intel Dashboard</a>
+</div>
+
+<div class="main">
+
+<!-- ═══ BASIC CARDS ═══ -->
+<div class="sec" id="basic">
+  <div class="sec-head"><span class="sec-id">C-01</span><span class="sec-t">Basic Intel Cards</span></div>
+  <div class="sec-desc">Bracketed cards with scan line on hover. Header label, body content, footer metadata.</div>
+
+  <div class="g3">
+    <div class="intel-card card-basic">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label">Intel Brief</span>
+        <span class="ic-meta">CLASS-3</span>
+      </div>
+      <div class="ic-body">
+        <p>Surveillance sweep of Sector Alpha-7 completed at 14:30 UTC. Three contacts identified, two confirmed non-hostile. Contact ECHO-3 remains under active tracking.</p>
+      </div>
+      <div class="ic-foot">
+        <span>OP: NIGHTWATCH</span>
+        <span style="color:var(--c)">14:30 UTC</span>
+      </div>
+    </div>
+
+    <div class="intel-card card-basic">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label">Network Report</span>
+        <span class="ic-meta">LIVE</span>
+      </div>
+      <div class="ic-body">
+        <p>All primary backend nodes reporting nominal. Memory sync daemon active on ws://localhost:8766. ngrok tunnels stable — last reconnect 8h 14m ago.</p>
+        <div style="margin-top:12px">
+          <div class="ic-bar-label"><span>BANDWIDTH</span><span style="color:var(--c)">247 MB/s</span></div>
+          <div class="ic-bar-track"><div class="ic-bar-fill" style="width:72%;background:var(--c)"></div></div>
+          <div class="ic-bar-label"><span>LATENCY</span><span style="color:var(--g)">12ms</span></div>
+          <div class="ic-bar-track"><div class="ic-bar-fill" style="width:8%;background:var(--g)"></div></div>
+        </div>
+      </div>
+      <div class="ic-foot">
+        <span>NODE: AXE-BACKEND-01</span>
+        <span style="color:var(--g)">● ONLINE</span>
+      </div>
+    </div>
+
+    <div class="intel-card card-basic">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label">Mission Log</span>
+        <span class="ic-meta">7 ENTRIES</span>
+      </div>
+      <div class="ic-body">
+        <div style="font-size:10px;color:var(--dim);line-height:2.2">
+          <div>[14:32] <span style="color:var(--c)">AUTH.OK</span> — Token validated</div>
+          <div>[14:31] <span style="color:var(--g)">SYNC.OK</span> — Memory synced</div>
+          <div>[14:30] <span style="color:var(--a)">SCAN.RUN</span> — Sector A-7</div>
+          <div>[14:28] <span style="color:var(--r)">ALERT</span> — Contact detected</div>
+          <div>[14:25] <span style="color:var(--c)">INIT</span> — Mission started</div>
+        </div>
+      </div>
+      <div class="ic-foot">
+        <span>MISSION: NW-7</span>
+        <span>VIEW ALL →</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STAT CARDS ═══ -->
+<div class="sec" id="stat">
+  <div class="sec-head"><span class="sec-id">C-02</span><span class="sec-t">Stat Cards</span></div>
+  <div class="sec-desc">Large number display with unit label, trend indicator, and optional progress bar.</div>
+
+  <div class="g4">
+    <div class="intel-card card-stat">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label">Total Threats</span>
+        <span class="ic-meta">30d</span>
+      </div>
+      <div class="ic-body">
+        <div class="stat-num" style="color:var(--r)">247<span class="stat-unit">+</span></div>
+        <div class="stat-lbl">Threats Detected</div>
+        <span class="stat-change up">▲ +12% vs last month</span>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:82%;background:var(--r)"></div></div>
+      </div>
+      <div class="ic-foot"><span>LAST: 14:32 UTC</span><span style="color:var(--r)">HIGH</span></div>
+    </div>
+
+    <div class="intel-card card-stat">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label">Active Units</span>
+        <span class="ic-meta">NOW</span>
+      </div>
+      <div class="ic-body">
+        <div class="stat-num" style="color:var(--c)">12<span class="stat-unit">units</span></div>
+        <div class="stat-lbl">Deployed Operatives</div>
+        <span class="stat-change flat">→ No change</span>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:60%;background:var(--c)"></div></div>
+      </div>
+      <div class="ic-foot"><span>CAP: 20</span><span style="color:var(--c)">60%</span></div>
+    </div>
+
+    <div class="intel-card card-stat">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label">System Uptime</span>
+        <span class="ic-meta">LIVE</span>
+      </div>
+      <div class="ic-body">
+        <div class="stat-num" style="color:var(--g)">99.7<span class="stat-unit">%</span></div>
+        <div class="stat-lbl">30-Day Availability</div>
+        <span class="stat-change up">▲ +0.2% vs last month</span>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:99.7%;background:var(--g)"></div></div>
+      </div>
+      <div class="ic-foot"><span>SLA: 99.5%</span><span style="color:var(--g)">✓ MET</span></div>
+    </div>
+
+    <div class="intel-card card-stat">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label">GPU Memory</span>
+        <span class="ic-meta">LIVE</span>
+      </div>
+      <div class="ic-body">
+        <div class="stat-num" style="color:var(--a)">41.7<span class="stat-unit">GB</span></div>
+        <div class="stat-lbl">of 64GB Allocated</div>
+        <span class="stat-change down">▼ Model loaded</span>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:65%;background:var(--a)"></div></div>
+      </div>
+      <div class="ic-foot"><span>TOTAL: 64GB</span><span style="color:var(--a)">65%</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STATUS CARDS ═══ -->
+<div class="sec" id="status">
+  <div class="sec-head"><span class="sec-id">C-03</span><span class="sec-t">Status Cards</span></div>
+  <div class="sec-desc">Indicator dot rows with optional mini sparkline chart placeholder.</div>
+
+  <div class="g2">
+    <div class="intel-card card-status">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label">Service Health</span>
+        <span class="ic-meta" style="color:var(--g)">● ALL OK</span>
+      </div>
+      <div class="ic-body" style="padding-top:12px;padding-bottom:12px">
+        <div class="status-row">
+          <span class="status-ind green"></span>
+          <span class="status-name">FastAPI Backend</span>
+          <div class="sparkline">
+            <div class="spark-bar" style="height:8px"></div><div class="spark-bar" style="height:12px"></div>
+            <div class="spark-bar" style="height:6px"></div><div class="spark-bar" style="height:16px"></div>
+            <div class="spark-bar" style="height:10px"></div><div class="spark-bar" style="height:14px"></div>
+            <div class="spark-bar" style="height:20px;opacity:.9"></div>
+          </div>
+          <span class="status-val" style="color:var(--g)">12ms</span>
+        </div>
+        <div class="status-row">
+          <span class="status-ind green"></span>
+          <span class="status-name">Ollama Service</span>
+          <div class="sparkline">
+            <div class="spark-bar" style="height:14px"></div><div class="spark-bar" style="height:18px"></div>
+            <div class="spark-bar" style="height:10px"></div><div class="spark-bar" style="height:8px"></div>
+            <div class="spark-bar" style="height:16px"></div><div class="spark-bar" style="height:12px"></div>
+            <div class="spark-bar" style="height:20px;opacity:.9"></div>
+          </div>
+          <span class="status-val" style="color:var(--g)">8ms</span>
+        </div>
+        <div class="status-row">
+          <span class="status-ind amber"></span>
+          <span class="status-name">Observer Auth</span>
+          <div class="sparkline">
+            <div class="spark-bar" style="height:6px;background:var(--a)"></div><div class="spark-bar" style="height:4px;background:var(--a)"></div>
+            <div class="spark-bar" style="height:8px;background:var(--a)"></div><div class="spark-bar" style="height:4px;background:var(--a)"></div>
+            <div class="spark-bar" style="height:6px;background:var(--a)"></div><div class="spark-bar" style="height:4px;background:var(--a)"></div>
+            <div class="spark-bar" style="height:6px;background:var(--a);opacity:.9"></div>
+          </div>
+          <span class="status-val" style="color:var(--a)">STANDBY</span>
+        </div>
+        <div class="status-row">
+          <span class="status-ind green"></span>
+          <span class="status-name">Memory Sync WS</span>
+          <div class="sparkline">
+            <div class="spark-bar" style="height:4px"></div><div class="spark-bar" style="height:4px"></div>
+            <div class="spark-bar" style="height:6px"></div><div class="spark-bar" style="height:4px"></div>
+            <div class="spark-bar" style="height:4px"></div><div class="spark-bar" style="height:4px"></div>
+            <div class="spark-bar" style="height:6px;opacity:.9"></div>
+          </div>
+          <span class="status-val" style="color:var(--g)">3ms</span>
+        </div>
+        <div class="status-row">
+          <span class="status-ind red"></span>
+          <span class="status-name">AXE-GATEWAY-03</span>
+          <div class="sparkline">
+            <div class="spark-bar" style="height:12px;background:var(--r)"></div><div class="spark-bar" style="height:16px;background:var(--r)"></div>
+            <div class="spark-bar" style="height:20px;background:var(--r)"></div><div class="spark-bar" style="height:4px;background:var(--r)"></div>
+            <div class="spark-bar" style="height:2px;background:var(--r)"></div><div class="spark-bar" style="height:0px;background:var(--r)"></div>
+            <div class="spark-bar" style="height:0px;background:var(--r)"></div>
+          </div>
+          <span class="status-val" style="color:var(--r)">SUSPENDED</span>
+        </div>
+      </div>
+      <div class="ic-foot"><span>5 SERVICES</span><span>4 HEALTHY · 1 CRITICAL</span></div>
+    </div>
+
+    <div class="intel-card card-status">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label">Sector Watch</span>
+        <span class="ic-meta" style="color:var(--a)">⚠ 2 ELEVATED</span>
+      </div>
+      <div class="ic-body" style="padding-top:12px;padding-bottom:12px">
+        <div class="status-row">
+          <span class="status-ind green"></span>
+          <span class="status-name">SECTOR ALPHA-7</span>
+          <span class="status-val">2 units</span>
+        </div>
+        <div class="status-row">
+          <span class="status-ind red"></span>
+          <span class="status-name">SECTOR BRAVO-3</span>
+          <span class="status-val" style="color:var(--r)">BREACH</span>
+        </div>
+        <div class="status-row">
+          <span class="status-ind amber"></span>
+          <span class="status-name">SECTOR CHARLIE-7</span>
+          <span class="status-val" style="color:var(--a)">ELEVATED</span>
+        </div>
+        <div class="status-row">
+          <span class="status-ind green"></span>
+          <span class="status-name">SECTOR DELTA-1</span>
+          <span class="status-val">1 unit</span>
+        </div>
+        <div class="status-row">
+          <span class="status-ind dim"></span>
+          <span class="status-name">SECTOR ECHO-5</span>
+          <span class="status-val">UNMANNED</span>
+        </div>
+        <div class="status-row">
+          <span class="status-ind green"></span>
+          <span class="status-name">SECTOR FOXTROT-2</span>
+          <span class="status-val">3 units</span>
+        </div>
+      </div>
+      <div class="ic-foot"><span>6 SECTORS</span><span>3 CLEAR · 2 ALERT · 1 UNMANNED</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PROFILE CARDS ═══ -->
+<div class="sec" id="profile">
+  <div class="sec-head"><span class="sec-id">C-04</span><span class="sec-t">Profile / Entity Cards</span></div>
+  <div class="sec-desc">Avatar area with initials or icon, agent data readouts, stat row footer.</div>
+
+  <div class="g3">
+    <!-- Forge -->
+    <div class="intel-card card-profile">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label">Agent Profile</span>
+        <span class="ic-meta">CLASSIFIED</span>
+      </div>
+      <div class="ic-body">
+        <div class="profile-top">
+          <div class="profile-avatar" style="border-color:rgba(0,229,255,0.25)">
+            <span class="avatar-initials">FG</span>
+          </div>
+          <div>
+            <div class="profile-name">FORGE</div>
+            <div class="profile-role">Architect / Strategist</div>
+            <div class="profile-id">ID: AXE-AGENT-01</div>
+            <span class="profile-badge active">ACTIVE</span>
+          </div>
+        </div>
+        <div class="profile-data">
+          <div class="profile-data-row"><span>Model</span><span>qwen2.5:32b</span></div>
+          <div class="profile-data-row"><span>Focus</span><span>Frontend · Architecture</span></div>
+          <div class="profile-data-row"><span>Last Active</span><span style="color:var(--c)">14:28 UTC</span></div>
+          <div class="profile-data-row"><span>Sessions</span><span>847</span></div>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="profile-stat"><div class="profile-stat-v">24</div><div class="profile-stat-l">Skills</div></div>
+        <div class="profile-stat"><div class="profile-stat-v" style="color:var(--g)">98%</div><div class="profile-stat-l">Uptime</div></div>
+        <div class="profile-stat"><div class="profile-stat-v" style="color:var(--a)">32B</div><div class="profile-stat-l">Model</div></div>
+      </div>
+    </div>
+
+    <!-- Cortana -->
+    <div class="intel-card card-profile">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label">Agent Profile</span>
+        <span class="ic-meta">CLASSIFIED</span>
+      </div>
+      <div class="ic-body">
+        <div class="profile-top">
+          <div class="profile-avatar" style="border-color:rgba(255,152,0,0.3)">
+            <span class="avatar-initials" style="color:var(--a)">CT</span>
+          </div>
+          <div>
+            <div class="profile-name" style="color:var(--a)">CORTANA</div>
+            <div class="profile-role">Ops / Infrastructure</div>
+            <div class="profile-id">ID: AXE-AGENT-02</div>
+            <span class="profile-badge active">ACTIVE</span>
+          </div>
+        </div>
+        <div class="profile-data">
+          <div class="profile-data-row"><span>Model</span><span>qwen2.5:32b</span></div>
+          <div class="profile-data-row"><span>Focus</span><span>Backend · Reliability</span></div>
+          <div class="profile-data-row"><span>Last Active</span><span style="color:var(--c)">14:32 UTC</span></div>
+          <div class="profile-data-row"><span>Sessions</span><span>1,204</span></div>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="profile-stat"><div class="profile-stat-v" style="color:var(--a)">31</div><div class="profile-stat-l">Skills</div></div>
+        <div class="profile-stat"><div class="profile-stat-v" style="color:var(--g)">99%</div><div class="profile-stat-l">Uptime</div></div>
+        <div class="profile-stat"><div class="profile-stat-v" style="color:var(--a)">32B</div><div class="profile-stat-l">Model</div></div>
+      </div>
+    </div>
+
+    <!-- Klaus -->
+    <div class="intel-card card-profile">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label">Agent Profile</span>
+        <span class="ic-meta">CLASSIFIED</span>
+      </div>
+      <div class="ic-body">
+        <div class="profile-top">
+          <div class="profile-avatar" style="border-color:rgba(0,230,118,0.25)">
+            <span class="avatar-initials" style="color:var(--g)">KL</span>
+          </div>
+          <div>
+            <div class="profile-name" style="color:var(--g)">KLAUS</div>
+            <div class="profile-role">Skills / Assistant</div>
+            <div class="profile-id">ID: AXE-AGENT-03</div>
+            <span class="profile-badge standby">STANDBY</span>
+          </div>
+        </div>
+        <div class="profile-data">
+          <div class="profile-data-row"><span>Model</span><span>klaus-imi-lean</span></div>
+          <div class="profile-data-row"><span>Focus</span><span>Tasks · Learning</span></div>
+          <div class="profile-data-row"><span>Last Active</span><span style="color:var(--c)">14:18 UTC</span></div>
+          <div class="profile-data-row"><span>Sessions</span><span>3,891</span></div>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="profile-stat"><div class="profile-stat-v" style="color:var(--g)">18</div><div class="profile-stat-l">Skills</div></div>
+        <div class="profile-stat"><div class="profile-stat-v" style="color:var(--g)">97%</div><div class="profile-stat-l">Uptime</div></div>
+        <div class="profile-stat"><div class="profile-stat-v" style="color:var(--g)">7B</div><div class="profile-stat-l">Model</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ VARIANTS ═══ -->
+<div class="sec" id="variants">
+  <div class="sec-head"><span class="sec-id">C-05</span><span class="sec-t">Card Variants</span></div>
+  <div class="sec-desc">Alert (red), warning (amber), and success (green) card color variants.</div>
+
+  <div class="g3">
+    <div class="intel-card card-alert">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label" style="color:var(--r)">Critical Alert</span>
+        <span class="ic-meta" style="color:var(--r)">⚠ ACTIVE</span>
+      </div>
+      <div class="ic-body">
+        <p style="font-size:11px;color:var(--dim);line-height:1.8">Unauthorized access attempt detected at AXE-GATEWAY-03. Node suspended. Immediate review required.</p>
+        <div style="margin-top:12px;font-size:9px;color:var(--r);letter-spacing:.1em">⚠ 3 FAILED AUTH ATTEMPTS</div>
+      </div>
+      <div class="ic-foot" style="border-color:rgba(255,23,68,0.15)">
+        <span style="color:var(--r)">THREAT: CRITICAL</span>
+        <span>14:29 UTC</span>
+      </div>
+    </div>
+
+    <div class="intel-card card-warn">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label" style="color:var(--a)">Warning</span>
+        <span class="ic-meta" style="color:var(--a)">⚡ MONITOR</span>
+      </div>
+      <div class="ic-body">
+        <p style="font-size:11px;color:var(--dim);line-height:1.8">GPU memory at 87%. Consider switching Ollama to 7B model for non-critical inference tasks to free headroom.</p>
+        <div style="margin-top:12px;font-size:9px;color:var(--a);letter-spacing:.1em">87% / 64GB ALLOCATED</div>
+      </div>
+      <div class="ic-foot" style="border-color:rgba(255,152,0,0.15)">
+        <span style="color:var(--a)">LEVEL: WARNING</span>
+        <span>14:31 UTC</span>
+      </div>
+    </div>
+
+    <div class="intel-card card-success">
+      <div class="card-scan"></div>
+      <div class="ic-head">
+        <span class="ic-label" style="color:var(--g)">Mission Complete</span>
+        <span class="ic-meta" style="color:var(--g)">✓ SUCCESS</span>
+      </div>
+      <div class="ic-body">
+        <p style="font-size:11px;color:var(--dim);line-height:1.8">Operation NIGHTWATCH-7 completed successfully. All 3 surveillance units returned. Mission ledger updated.</p>
+        <div style="margin-top:12px;font-size:9px;color:var(--g);letter-spacing:.1em">✓ OBJECTIVE ACHIEVED</div>
+      </div>
+      <div class="ic-foot" style="border-color:rgba(0,230,118,0.1)">
+        <span style="color:var(--g)">STATUS: COMPLETE</span>
+        <span>14:22 UTC</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LOADING STATES ═══ -->
+<div class="sec" id="loading">
+  <div class="sec-head"><span class="sec-id">C-06</span><span class="sec-t">Loading Skeleton Cards</span></div>
+  <div class="sec-desc">Skeleton shimmer states for cards awaiting data.</div>
+
+  <div class="g3">
+    <div class="intel-card">
+      <div class="ic-head">
+        <span class="ic-label">Loading...</span>
+      </div>
+      <div class="ic-body">
+        <div style="display:flex;gap:12px;margin-bottom:16px">
+          <div class="skel-line skel-circle" style="width:48px;height:48px;flex-shrink:0;margin-bottom:0"></div>
+          <div style="flex:1">
+            <div class="skel-line" style="width:70%"></div>
+            <div class="skel-line" style="width:45%"></div>
+          </div>
+        </div>
+        <div class="skel-line" style="width:100%"></div>
+        <div class="skel-line" style="width:85%"></div>
+        <div class="skel-line" style="width:60%"></div>
+      </div>
+      <div class="ic-foot"><div class="skel-line" style="width:40%;margin-bottom:0;height:6px"></div></div>
+    </div>
+
+    <div class="intel-card">
+      <div class="ic-head">
+        <span class="ic-label">Loading...</span>
+      </div>
+      <div class="ic-body" style="text-align:center">
+        <div class="skel-line skel-circle" style="width:64px;height:64px;margin:0 auto 12px"></div>
+        <div class="skel-line" style="width:50%;margin:0 auto 8px"></div>
+        <div class="skel-line" style="width:35%;margin:0 auto"></div>
+      </div>
+    </div>
+
+    <div class="intel-card">
+      <div class="ic-head">
+        <span class="ic-label">Loading...</span>
+      </div>
+      <div class="ic-body">
+        <div class="skel-line" style="width:100%;height:80px;margin-bottom:12px"></div>
+        <div class="skel-line" style="width:80%"></div>
+        <div class="skel-line" style="width:55%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<div class="ticker">
+  <div class="ticker-scroll">
+    <span class="hl">AXIOM</span> INTEL CARDS &nbsp;&#x2502;&nbsp;
+    BASIC CONTENT CARDS &nbsp;&#x2502;&nbsp;
+    <span class="am">STAT CARDS</span> WITH LARGE NUMBERS &nbsp;&#x2502;&nbsp;
+    STATUS INDICATOR ROWS &nbsp;&#x2502;&nbsp;
+    <span class="hl">PROFILE CARDS</span> WITH AVATAR + DATA &nbsp;&#x2502;&nbsp;
+    ALERT/WARN/SUCCESS VARIANTS &nbsp;&#x2502;&nbsp;
+    <span class="am">SKELETON</span> LOADING STATES &nbsp;&#x2502;&nbsp;
+    HOVER SCAN LINE ANIMATION &nbsp;&#x2502;&nbsp;
+  </div>
+</div>
+
+<script>
+function updateClock(){
+  const d=new Date();
+  document.getElementById('clock').textContent='UTC '+d.toISOString().substr(11,8);
+}
+setInterval(updateClock,1000);updateClock();
+</script>
+</body>
+</html>

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM — Tactical Tables</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050a0e;--s:#0a1118;--el:#0f1a24;--c:#00e5ff;--a:#ff9800;--g:#00e676;--r:#ff1744;
+  --text:#c8dce8;--dim:#4a6a7a;--border:rgba(0,229,255,0.12);--glow:rgba(0,229,255,0.25);
+  --font:'Share Tech Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden;padding:44px 0 32px 200px}
+body::before{content:'';position:fixed;inset:0;
+  background-image:repeating-linear-gradient(0deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px),
+  repeating-linear-gradient(90deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px);
+  pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);
+  pointer-events:none;z-index:9999}
+
+.topbar{position:fixed;top:0;left:0;right:0;height:44px;background:rgba(10,17,24,0.94);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;z-index:100;backdrop-filter:blur(16px)}
+.topbar::before,.topbar::after{content:'';position:absolute;width:12px;height:12px;border-color:var(--c);border-style:solid}
+.topbar::before{top:0;left:0;border-width:2px 0 0 2px}
+.topbar::after{bottom:0;right:0;border-width:0 2px 2px 0}
+.topbar-title{font-size:13px;color:var(--c);letter-spacing:.35em;text-transform:uppercase}
+.topbar-title b{color:var(--a)}
+.topbar-right{display:flex;align-items:center;gap:20px;font-size:10px;color:var(--dim);letter-spacing:.12em}
+.dot-live{width:6px;height:6px;border-radius:50%;background:var(--g);display:inline-block;box-shadow:0 0 8px var(--g);animation:pulse 2s infinite;margin-right:4px}
+.clock{color:var(--c);font-size:11px;letter-spacing:.1em}
+
+.sidebar{position:fixed;top:44px;left:0;width:200px;bottom:32px;background:rgba(10,17,24,0.96);
+  border-right:1px solid var(--border);z-index:90;padding:12px 0;overflow-y:auto}
+.nav-sec{padding:12px 14px 4px;font-size:8px;color:var(--a);letter-spacing:.25em;text-transform:uppercase}
+.nav-a{display:block;padding:6px 14px 6px 20px;font-size:10px;color:var(--dim);letter-spacing:.1em;
+  text-decoration:none;cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-transform:uppercase}
+.nav-a:hover,.nav-a.active{color:var(--text);background:rgba(0,229,255,0.04);border-left-color:var(--c)}
+
+.ticker{position:fixed;bottom:0;left:0;right:0;height:32px;background:rgba(10,17,24,0.96);
+  border-top:1px solid var(--border);overflow:hidden;z-index:100;display:flex;align-items:center}
+.ticker-scroll{white-space:nowrap;font-size:10px;color:var(--dim);letter-spacing:.1em;animation:tickerScroll 40s linear infinite}
+.ticker-scroll .hl{color:var(--c)}.ticker-scroll .am{color:var(--a)}
+
+.main{padding:32px;position:relative;z-index:1}
+.sec{margin-bottom:56px}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.sec-id{font-size:9px;color:var(--bg);background:var(--c);padding:2px 8px;letter-spacing:.15em}
+.sec-t{font-size:13px;color:var(--c);letter-spacing:.2em;text-transform:uppercase}
+.sec-desc{font-size:10px;color:var(--dim);margin-bottom:20px;letter-spacing:.05em;line-height:1.7}
+.card{background:var(--s);border:1px solid var(--border);padding:24px;position:relative;overflow:hidden;margin-bottom:16px}
+.card::before,.card::after{content:'';position:absolute;width:12px;height:12px;border-color:var(--c);border-style:solid;pointer-events:none}
+.card::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.card::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+.card-label{font-size:8px;color:var(--a);letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px}
+
+/* ══════════════════════════════════════════
+   TACTICAL TABLE SYSTEM
+══════════════════════════════════════════ */
+
+/* Table wrapper */
+.tbl-wrap{width:100%;overflow-x:auto;position:relative}
+.tbl-wrap::-webkit-scrollbar{height:4px}
+.tbl-wrap::-webkit-scrollbar-track{background:var(--bg)}
+.tbl-wrap::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2)}
+
+/* Base table */
+.tbl{width:100%;border-collapse:collapse;font-size:10px;letter-spacing:.06em}
+
+/* Header */
+.tbl thead tr{border-bottom:2px solid rgba(0,229,255,0.2)}
+.tbl th{
+  text-align:left;color:var(--c);letter-spacing:.14em;text-transform:uppercase;
+  padding:10px 14px;font-weight:normal;white-space:nowrap;
+  position:relative;user-select:none;
+}
+.tbl th:first-child{padding-left:16px}
+.tbl th:last-child{padding-right:16px;text-align:right}
+
+/* Sortable header */
+.tbl th.sort{cursor:pointer;transition:color .15s}
+.tbl th.sort:hover{color:var(--text)}
+.sort-arrow{display:inline-block;margin-left:6px;font-size:8px;color:var(--dim);transition:all .2s}
+.tbl th.sort-asc .sort-arrow{color:var(--c)}
+.tbl th.sort-asc .sort-arrow::before{content:'▲'}
+.tbl th.sort-desc .sort-arrow{color:var(--c)}
+.tbl th.sort-desc .sort-arrow::before{content:'▼'}
+.tbl th.sort-none .sort-arrow::before{content:'⇅'}
+
+/* Rows */
+.tbl tbody tr{
+  border-bottom:1px solid rgba(0,229,255,0.05);
+  transition:background .12s,border-color .12s;
+}
+.tbl tbody tr:hover{background:rgba(0,229,255,0.04);border-bottom-color:rgba(0,229,255,0.1)}
+.tbl tbody tr:nth-child(odd){background:rgba(0,229,255,0.015)}
+.tbl tbody tr:nth-child(odd):hover{background:rgba(0,229,255,0.04)}
+
+/* Cells */
+.tbl td{padding:9px 14px;color:var(--dim);white-space:nowrap;vertical-align:middle}
+.tbl td:first-child{padding-left:16px;color:var(--text)}
+.tbl td:last-child{padding-right:16px;text-align:right}
+
+/* Selected row */
+.tbl tbody tr.selected{background:rgba(0,229,255,0.07)!important;border-bottom-color:rgba(0,229,255,0.2)}
+.tbl tbody tr.selected td:first-child{border-left:2px solid var(--c)}
+
+/* Status dot cells */
+.status-dot{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot.green{background:var(--g);box-shadow:0 0 6px var(--g)}
+.dot.amber{background:var(--a);box-shadow:0 0 6px var(--a)}
+.dot.red{background:var(--r);box-shadow:0 0 6px var(--r);animation:alertPulse 1.5s infinite}
+.dot.dim{background:var(--dim)}
+
+/* Badge cells */
+.badge{
+  font-size:8px;letter-spacing:.12em;text-transform:uppercase;
+  padding:2px 8px;display:inline-block;
+}
+.badge.success{color:var(--g);border:1px solid rgba(0,230,118,0.3);background:rgba(0,230,118,0.06)}
+.badge.warning{color:var(--a);border:1px solid rgba(255,152,0,0.3);background:rgba(255,152,0,0.06)}
+.badge.danger{color:var(--r);border:1px solid rgba(255,23,68,0.3);background:rgba(255,23,68,0.06);animation:badgePulse 2s infinite}
+.badge.info{color:var(--c);border:1px solid rgba(0,229,255,0.2);background:rgba(0,229,255,0.06)}
+.badge.dim{color:var(--dim);border:1px solid var(--border)}
+
+/* Mini bar */
+.mini-bar{
+  display:flex;align-items:center;gap:8px;
+}
+.mini-bar-track{
+  width:80px;height:3px;background:rgba(0,229,255,0.1);position:relative;overflow:hidden;
+}
+.mini-bar-fill{position:absolute;top:0;left:0;height:100%}
+.mini-bar-val{font-size:9px;color:var(--dim);min-width:28px;text-align:right}
+
+/* Rank/index column */
+.col-idx{color:var(--dim)!important;font-size:9px;letter-spacing:.06em}
+
+/* Action buttons in table */
+.tbl-btn{
+  font-family:var(--font);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);background:var(--el);border:1px solid var(--border);
+  padding:3px 10px;cursor:pointer;transition:all .15s;
+}
+.tbl-btn:hover{color:var(--c);border-color:var(--c)}
+.tbl-btn.danger:hover{color:var(--r);border-color:var(--r)}
+
+/* Fixed-header scrollable table */
+.tbl-scroll-wrap{max-height:280px;overflow-y:auto;position:relative}
+.tbl-scroll-wrap::-webkit-scrollbar{width:4px}
+.tbl-scroll-wrap::-webkit-scrollbar-track{background:var(--el)}
+.tbl-scroll-wrap::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2)}
+.tbl-scroll-wrap .tbl thead{position:sticky;top:0;z-index:10;background:var(--s)}
+.tbl-scroll-wrap .tbl thead tr{background:var(--s)}
+
+/* Table toolbar */
+.tbl-toolbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  background:var(--el);
+}
+.tbl-toolbar-left{display:flex;align-items:center;gap:10px;font-size:9px;letter-spacing:.1em;color:var(--dim)}
+.tbl-toolbar-right{display:flex;gap:8px}
+.tbl-count{color:var(--c)}
+.tbl-search{
+  font-family:var(--font);font-size:9px;letter-spacing:.08em;
+  color:var(--text);background:var(--s);border:1px solid var(--border);
+  padding:5px 10px;outline:none;width:180px;transition:border-color .2s;
+}
+.tbl-search:focus{border-color:var(--c)}
+.tbl-search::placeholder{color:var(--dim)}
+
+/* Table container with bracket corners */
+.tbl-container{background:var(--s);border:1px solid var(--border);position:relative}
+.tbl-container::before,.tbl-container::after{content:'';position:absolute;width:12px;height:12px;border-color:var(--c);border-style:solid;pointer-events:none;z-index:1}
+.tbl-container::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.tbl-container::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+
+/* Expandable row */
+.tbl tbody tr.expandable{cursor:pointer}
+.tbl tbody tr.expanded{background:rgba(0,229,255,0.06)!important}
+.expand-icon{display:inline-block;transition:transform .2s;margin-right:6px;color:var(--dim);font-size:9px}
+.expanded .expand-icon{transform:rotate(90deg);color:var(--c)}
+.tbl-sub-row td{background:rgba(0,229,255,0.02);padding:12px 16px 12px 32px;font-size:9px;color:var(--dim);line-height:1.8;border-bottom:1px solid rgba(0,229,255,0.08)}
+
+/* ── KEYFRAMES ── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes alertPulse{0%,100%{opacity:1;box-shadow:0 0 6px var(--r)}50%{opacity:.5;box-shadow:none}}
+@keyframes badgePulse{0%,100%{border-color:rgba(255,23,68,0.3)}50%{border-color:rgba(255,23,68,0.08)}}
+@keyframes tickerScroll{from{transform:translateX(100%)}to{transform:translateX(-200%)}}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:16px">
+    <span class="topbar-title">AXIOM <b>// TACTICAL TABLES</b></span>
+  </div>
+  <div class="topbar-right">
+    <span><span class="dot-live"></span>SYSTEM ONLINE</span>
+    <span class="clock" id="clock"></span>
+    <a href="../showcase/index.html" style="color:var(--dim);text-decoration:none;letter-spacing:.1em;font-size:10px">← BACK</a>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="nav-sec">// tables</div>
+  <a class="nav-a active" href="#basic">Basic Table</a>
+  <a class="nav-a" href="#sortable">Sortable</a>
+  <a class="nav-a" href="#status">Status Cells</a>
+  <a class="nav-a" href="#scrollable">Scrollable</a>
+  <a class="nav-a" href="#expandable">Expandable</a>
+  <a class="nav-a" href="#actions">With Actions</a>
+  <div class="nav-sec">// system</div>
+  <a class="nav-a" href="../showcase/index.html">Design System</a>
+  <a class="nav-a" href="forms.html">Forms</a>
+  <a class="nav-a" href="modals.html">Modals</a>
+  <a class="nav-a" href="cards.html">Cards</a>
+  <a class="nav-a" href="../layouts/intel-dashboard.html">Intel Dashboard</a>
+</div>
+
+<div class="main">
+
+<!-- ═══ BASIC TABLE ═══ -->
+<div class="sec" id="basic">
+  <div class="sec-head"><span class="sec-id">T-01</span><span class="sec-t">Basic Striped Table</span></div>
+  <div class="sec-desc">Alternating stripe rows with cyan header, hover highlight, and corner bracket container.</div>
+
+  <div class="tbl-container">
+    <div class="tbl-toolbar">
+      <div class="tbl-toolbar-left">
+        UNIT REGISTRY &nbsp;|&nbsp; <span class="tbl-count">12 RECORDS</span>
+      </div>
+      <div class="tbl-toolbar-right">
+        <input class="tbl-search" type="text" placeholder="FILTER UNITS..." oninput="filterTable(this,'basicTbl')">
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl" id="basicTbl">
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th>Unit ID</th>
+            <th>Operator</th>
+            <th>Sector</th>
+            <th>Frequency</th>
+            <th>Uptime</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="col-idx">01</td><td>AXE-ALPHA-01</td><td>Ghost</td><td>A-7</td><td>437.525 MHz</td><td style="color:var(--c)">14d 07h</td><td><span class="badge info">RECON</span></td></tr>
+          <tr><td class="col-idx">02</td><td>AXE-BRAVO-03</td><td>Shadow</td><td>C-3</td><td>912.100 MHz</td><td style="color:var(--c)">3d 12h</td><td><span class="badge success">SUPPORT</span></td></tr>
+          <tr><td class="col-idx">03</td><td>AXE-CHARLIE-07</td><td>Nomad</td><td>B-9</td><td>217.880 MHz</td><td style="color:var(--a)">0d 04h</td><td><span class="badge warning">STRIKE</span></td></tr>
+          <tr><td class="col-idx">04</td><td>AXE-DELTA-02</td><td>Viper</td><td>D-1</td><td>104.500 MHz</td><td style="color:var(--c)">7d 02h</td><td><span class="badge info">RECON</span></td></tr>
+          <tr><td class="col-idx">05</td><td>AXE-ECHO-09</td><td>Wraith</td><td>E-5</td><td>580.775 MHz</td><td style="color:var(--dim)">—</td><td><span class="badge dim">OFFLINE</span></td></tr>
+          <tr><td class="col-idx">06</td><td>AXE-FOXTROT-04</td><td>Kestrel</td><td>F-2</td><td>329.410 MHz</td><td style="color:var(--c)">21d 18h</td><td><span class="badge success">SUPPORT</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SORTABLE ═══ -->
+<div class="sec" id="sortable">
+  <div class="sec-head"><span class="sec-id">T-02</span><span class="sec-t">Sortable Columns</span></div>
+  <div class="sec-desc">Click column headers to sort ascending/descending. Arrow indicator shows active sort direction.</div>
+
+  <div class="tbl-container">
+    <div class="tbl-toolbar">
+      <div class="tbl-toolbar-left">
+        THREAT REGISTRY &nbsp;|&nbsp; CLICK HEADERS TO SORT
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl" id="sortTbl">
+        <thead>
+          <tr>
+            <th class="sort sort-none" data-col="0" onclick="sortTable('sortTbl',0,this)">Threat ID <span class="sort-arrow"></span></th>
+            <th class="sort sort-none" data-col="1" onclick="sortTable('sortTbl',1,this)">Type <span class="sort-arrow"></span></th>
+            <th class="sort sort-none" data-col="2" onclick="sortTable('sortTbl',2,this)">Sector <span class="sort-arrow"></span></th>
+            <th class="sort sort-desc" data-col="3" onclick="sortTable('sortTbl',3,this)">Priority <span class="sort-arrow"></span></th>
+            <th class="sort sort-none" data-col="4" onclick="sortTable('sortTbl',4,this)">Confidence <span class="sort-arrow"></span></th>
+            <th>Detected</th>
+          </tr>
+        </thead>
+        <tbody id="sortTblBody">
+          <tr data-priority="1"><td>THR-001</td><td>INTRUSION</td><td>Alpha-7</td><td style="color:var(--r)">P1 — CRITICAL</td><td>97.3%</td><td>14:32:07</td></tr>
+          <tr data-priority="2"><td>THR-007</td><td>SIGNAL</td><td>Charlie-3</td><td style="color:var(--a)">P2 — HIGH</td><td>84.1%</td><td>14:30:52</td></tr>
+          <tr data-priority="3"><td>THR-012</td><td>MOVEMENT</td><td>Bravo-9</td><td style="color:var(--a)">P2 — HIGH</td><td>71.6%</td><td>14:28:11</td></tr>
+          <tr data-priority="4"><td>THR-019</td><td>NETWORK</td><td>Delta-1</td><td style="color:var(--c)">P3 — MED</td><td>63.2%</td><td>14:25:40</td></tr>
+          <tr data-priority="5"><td>THR-024</td><td>ACOUSTIC</td><td>Echo-5</td><td style="color:var(--c)">P3 — MED</td><td>58.8%</td><td>14:20:19</td></tr>
+          <tr data-priority="6"><td>THR-031</td><td>THERMAL</td><td>Foxtrot-2</td><td style="color:var(--dim)">P4 — LOW</td><td>42.1%</td><td>14:17:03</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STATUS CELLS ═══ -->
+<div class="sec" id="status">
+  <div class="sec-head"><span class="sec-id">T-03</span><span class="sec-t">Status Cells & Progress</span></div>
+  <div class="sec-desc">Colored status dots, badges, and mini progress bars inside table cells.</div>
+
+  <div class="tbl-container">
+    <div class="tbl-toolbar">
+      <div class="tbl-toolbar-left">SYSTEM NODE STATUS &nbsp;|&nbsp; <span class="tbl-count" id="onlineCount">— ONLINE</span></div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Node</th>
+            <th>Status</th>
+            <th>Load</th>
+            <th>Memory</th>
+            <th>Response</th>
+            <th>Alerts</th>
+            <th style="text-align:right">Last Ping</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>AXE-BACKEND-01</td>
+            <td><span class="status-dot"><span class="dot green"></span>ONLINE</span></td>
+            <td>
+              <div class="mini-bar">
+                <div class="mini-bar-track"><div class="mini-bar-fill" style="width:47%;background:var(--g)"></div></div>
+                <span class="mini-bar-val" style="color:var(--g)">47%</span>
+              </div>
+            </td>
+            <td>
+              <div class="mini-bar">
+                <div class="mini-bar-track"><div class="mini-bar-fill" style="width:62%;background:var(--c)"></div></div>
+                <span class="mini-bar-val">62%</span>
+              </div>
+            </td>
+            <td style="color:var(--g)">12ms</td>
+            <td><span class="badge dim">NONE</span></td>
+            <td>14:32:07</td>
+          </tr>
+          <tr>
+            <td>AXE-OBSERVER-01</td>
+            <td><span class="status-dot"><span class="dot amber"></span>STANDBY</span></td>
+            <td>
+              <div class="mini-bar">
+                <div class="mini-bar-track"><div class="mini-bar-fill" style="width:12%;background:var(--a)"></div></div>
+                <span class="mini-bar-val" style="color:var(--a)">12%</span>
+              </div>
+            </td>
+            <td>
+              <div class="mini-bar">
+                <div class="mini-bar-track"><div class="mini-bar-fill" style="width:18%;background:var(--a)"></div></div>
+                <span class="mini-bar-val">18%</span>
+              </div>
+            </td>
+            <td style="color:var(--a)">47ms</td>
+            <td><span class="badge warning">1 WARN</span></td>
+            <td>14:31:58</td>
+          </tr>
+          <tr>
+            <td>AXE-OLLAMA-01</td>
+            <td><span class="status-dot"><span class="dot green"></span>ONLINE</span></td>
+            <td>
+              <div class="mini-bar">
+                <div class="mini-bar-track"><div class="mini-bar-fill" style="width:83%;background:var(--a)"></div></div>
+                <span class="mini-bar-val" style="color:var(--a)">83%</span>
+              </div>
+            </td>
+            <td>
+              <div class="mini-bar">
+                <div class="mini-bar-track"><div class="mini-bar-fill" style="width:87%;background:var(--r)"></div></div>
+                <span class="mini-bar-val" style="color:var(--r)">87%</span>
+              </div>
+            </td>
+            <td style="color:var(--g)">8ms</td>
+            <td><span class="badge danger">MEMORY</span></td>
+            <td>14:32:09</td>
+          </tr>
+          <tr>
+            <td>AXE-GATEWAY-03</td>
+            <td><span class="status-dot"><span class="dot red"></span>SUSPENDED</span></td>
+            <td>
+              <div class="mini-bar">
+                <div class="mini-bar-track"><div class="mini-bar-fill" style="width:0%;background:var(--r)"></div></div>
+                <span class="mini-bar-val" style="color:var(--r)">0%</span>
+              </div>
+            </td>
+            <td>
+              <div class="mini-bar">
+                <div class="mini-bar-track"><div class="mini-bar-fill" style="width:0%;background:var(--r)"></div></div>
+                <span class="mini-bar-val">0%</span>
+              </div>
+            </td>
+            <td style="color:var(--r)">—</td>
+            <td><span class="badge danger">BREACH</span></td>
+            <td style="color:var(--r)">14:29:11</td>
+          </tr>
+          <tr>
+            <td>AXE-MEMORY-SYNC</td>
+            <td><span class="status-dot"><span class="dot green"></span>ACTIVE</span></td>
+            <td>
+              <div class="mini-bar">
+                <div class="mini-bar-track"><div class="mini-bar-fill" style="width:5%;background:var(--g)"></div></div>
+                <span class="mini-bar-val" style="color:var(--g)">5%</span>
+              </div>
+            </td>
+            <td>
+              <div class="mini-bar">
+                <div class="mini-bar-track"><div class="mini-bar-fill" style="width:22%;background:var(--c)"></div></div>
+                <span class="mini-bar-val">22%</span>
+              </div>
+            </td>
+            <td style="color:var(--g)">3ms</td>
+            <td><span class="badge dim">NONE</span></td>
+            <td>14:32:09</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCROLLABLE FIXED HEADER ═══ -->
+<div class="sec" id="scrollable">
+  <div class="sec-head"><span class="sec-id">T-04</span><span class="sec-t">Scrollable Fixed Header</span></div>
+  <div class="sec-desc">Constrained height with sticky header. Scroll body while header remains locked.</div>
+
+  <div class="tbl-container">
+    <div class="tbl-toolbar">
+      <div class="tbl-toolbar-left">MISSION LOG &nbsp;|&nbsp; <span class="tbl-count">24 ENTRIES</span> &nbsp;|&nbsp; SCROLL TO VIEW ALL</div>
+    </div>
+    <div class="tbl-scroll-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Event</th>
+            <th>Source</th>
+            <th>Severity</th>
+            <th style="text-align:right">Code</th>
+          </tr>
+        </thead>
+        <tbody id="logBody">
+          <!-- Generated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EXPANDABLE ═══ -->
+<div class="sec" id="expandable">
+  <div class="sec-head"><span class="sec-id">T-05</span><span class="sec-t">Expandable Rows</span></div>
+  <div class="sec-desc">Click rows to expand inline detail panel. Chevron indicator rotates on expand.</div>
+
+  <div class="tbl-container">
+    <div class="tbl-toolbar">
+      <div class="tbl-toolbar-left">AGENT DIRECTORY &nbsp;|&nbsp; CLICK ROW TO EXPAND</div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl" id="expandTbl">
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>Role</th>
+            <th>Model</th>
+            <th>Status</th>
+            <th style="text-align:right">Skills</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="expandable" onclick="toggleExpand(this,'expand-forge')">
+            <td><span class="expand-icon">▶</span>FORGE</td>
+            <td>Architect</td>
+            <td>qwen2.5:32b</td>
+            <td><span class="status-dot"><span class="dot green"></span>ACTIVE</span></td>
+            <td>24</td>
+          </tr>
+          <tr class="tbl-sub-row" id="expand-forge" style="display:none">
+            <td colspan="5">
+              <strong style="color:var(--c)">FORGE — Frontend Architect & System Strategist</strong><br>
+              Focus: Frontend development, system architecture, feature design, UI/UX decisions.<br>
+              Models: qwen2.5:32b-instruct-q4_K_M (primary) · qwen2.5:7b (fallback)<br>
+              Memory: ~/.axe/agents/forge_system_prompt.md · ~/.axe/memory/working_memory.json<br>
+              Last active: 14:28:47 UTC
+            </td>
+          </tr>
+          <tr class="expandable" onclick="toggleExpand(this,'expand-cortana')">
+            <td><span class="expand-icon">▶</span>CORTANA</td>
+            <td>Ops Lead</td>
+            <td>qwen2.5:32b</td>
+            <td><span class="status-dot"><span class="dot green"></span>ACTIVE</span></td>
+            <td>31</td>
+          </tr>
+          <tr class="tbl-sub-row" id="expand-cortana" style="display:none">
+            <td colspan="5">
+              <strong style="color:var(--c)">CORTANA — Operations & Infrastructure Lead</strong><br>
+              Focus: Backend systems, endpoint reliability, policy enforcement, infrastructure.<br>
+              Models: qwen2.5:32b-instruct-q4_K_M (primary) · deepseek-coder:6.7b (code tasks)<br>
+              Memory: ~/.axe/agents/cortana_system_prompt.md · ~/.axe/memory/cortana/<br>
+              Last active: 14:32:01 UTC
+            </td>
+          </tr>
+          <tr class="expandable" onclick="toggleExpand(this,'expand-klaus')">
+            <td><span class="expand-icon">▶</span>KLAUS</td>
+            <td>Assistant</td>
+            <td>klaus-imi-lean</td>
+            <td><span class="status-dot"><span class="dot amber"></span>STANDBY</span></td>
+            <td>18</td>
+          </tr>
+          <tr class="tbl-sub-row" id="expand-klaus" style="display:none">
+            <td colspan="5">
+              <strong style="color:var(--c)">KLAUS — Skills Execution & Local AI Assistant</strong><br>
+              Focus: Skill execution, file ops, chat, autonomous tasks, learning loops.<br>
+              Models: klaus-imi-lean (IMI tasks) · qwen2.5:7b (general) · llama3.2:3b (lightweight)<br>
+              Memory: ~/.axe/skills/ (18 skills) · ~/.axe/cloud-memory/<br>
+              Last active: 14:18:33 UTC
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WITH ACTIONS ═══ -->
+<div class="sec" id="actions">
+  <div class="sec-head"><span class="sec-id">T-06</span><span class="sec-t">Table with Row Actions</span></div>
+  <div class="sec-desc">Inline action buttons per row. Row selection highlight on click.</div>
+
+  <div class="tbl-container">
+    <div class="tbl-toolbar">
+      <div class="tbl-toolbar-left">ACTIVE OPERATIONS &nbsp;|&nbsp; <span class="tbl-count">5 ACTIVE</span></div>
+      <div class="tbl-toolbar-right">
+        <button style="font-family:var(--font);font-size:9px;letter-spacing:.1em;color:var(--bg);background:var(--c);border:none;padding:5px 12px;cursor:pointer;text-transform:uppercase">NEW OP</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl" id="actionTbl">
+        <thead>
+          <tr>
+            <th style="width:28px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()" style="accent-color:var(--c)"></th>
+            <th>Operation</th>
+            <th>Commander</th>
+            <th>Sector</th>
+            <th>Status</th>
+            <th>Started</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr onclick="selectRow(this)">
+            <td><input type="checkbox" class="row-check" style="accent-color:var(--c)"></td>
+            <td>NIGHTWATCH-7</td><td>Ghost</td><td>Charlie-7</td>
+            <td><span class="status-dot"><span class="dot green"></span>ACTIVE</span></td>
+            <td>12:00 UTC</td>
+            <td>
+              <button class="tbl-btn" onclick="event.stopPropagation()">VIEW</button>
+              <button class="tbl-btn" onclick="event.stopPropagation()">PAUSE</button>
+              <button class="tbl-btn danger" onclick="event.stopPropagation()">ABORT</button>
+            </td>
+          </tr>
+          <tr onclick="selectRow(this)">
+            <td><input type="checkbox" class="row-check" style="accent-color:var(--c)"></td>
+            <td>IRON-VEIL-2</td><td>Shadow</td><td>Alpha-7</td>
+            <td><span class="status-dot"><span class="dot green"></span>ACTIVE</span></td>
+            <td>09:30 UTC</td>
+            <td>
+              <button class="tbl-btn" onclick="event.stopPropagation()">VIEW</button>
+              <button class="tbl-btn" onclick="event.stopPropagation()">PAUSE</button>
+              <button class="tbl-btn danger" onclick="event.stopPropagation()">ABORT</button>
+            </td>
+          </tr>
+          <tr onclick="selectRow(this)">
+            <td><input type="checkbox" class="row-check" style="accent-color:var(--c)"></td>
+            <td>SILENT-ARC-9</td><td>Nomad</td><td>Bravo-3</td>
+            <td><span class="status-dot"><span class="dot amber"></span>PAUSED</span></td>
+            <td>08:15 UTC</td>
+            <td>
+              <button class="tbl-btn" onclick="event.stopPropagation()">VIEW</button>
+              <button class="tbl-btn" onclick="event.stopPropagation()">RESUME</button>
+              <button class="tbl-btn danger" onclick="event.stopPropagation()">ABORT</button>
+            </td>
+          </tr>
+          <tr onclick="selectRow(this)">
+            <td><input type="checkbox" class="row-check" style="accent-color:var(--c)"></td>
+            <td>ECLIPSE-MARK</td><td>Viper</td><td>Delta-1</td>
+            <td><span class="status-dot"><span class="dot red"></span>CRITICAL</span></td>
+            <td>06:00 UTC</td>
+            <td>
+              <button class="tbl-btn" onclick="event.stopPropagation()">VIEW</button>
+              <button class="tbl-btn" onclick="event.stopPropagation()">PAUSE</button>
+              <button class="tbl-btn danger" onclick="event.stopPropagation()">ABORT</button>
+            </td>
+          </tr>
+          <tr onclick="selectRow(this)">
+            <td><input type="checkbox" class="row-check" style="accent-color:var(--c)"></td>
+            <td>DEEP-WATCH-3</td><td>Wraith</td><td>Echo-5</td>
+            <td><span class="status-dot"><span class="dot dim"></span>PENDING</span></td>
+            <td>—</td>
+            <td>
+              <button class="tbl-btn" onclick="event.stopPropagation()">VIEW</button>
+              <button class="tbl-btn" onclick="event.stopPropagation()">START</button>
+              <button class="tbl-btn danger" onclick="event.stopPropagation()">CANCEL</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<div class="ticker">
+  <div class="ticker-scroll">
+    <span class="hl">AXIOM</span> TACTICAL TABLES &nbsp;&#x2502;&nbsp;
+    STRIPED ROWS WITH HUD STYLING &nbsp;&#x2502;&nbsp;
+    <span class="am">SORTABLE COLUMNS</span> WITH ARROW INDICATORS &nbsp;&#x2502;&nbsp;
+    STATUS DOTS GREEN/AMBER/RED &nbsp;&#x2502;&nbsp;
+    <span class="hl">SCROLLABLE</span> FIXED HEADER &nbsp;&#x2502;&nbsp;
+    EXPANDABLE DETAIL ROWS &nbsp;&#x2502;&nbsp;
+    <span class="am">INLINE ACTION</span> BUTTONS &nbsp;&#x2502;&nbsp;
+  </div>
+</div>
+
+<script>
+function updateClock(){
+  const d=new Date();
+  document.getElementById('clock').textContent='UTC '+d.toISOString().substr(11,8);
+}
+setInterval(updateClock,1000);updateClock();
+
+// Filter table
+function filterTable(input, tbId){
+  const val=input.value.toLowerCase();
+  document.querySelectorAll('#'+tbId+' tbody tr').forEach(r=>{
+    r.style.display=r.textContent.toLowerCase().includes(val)?'':'none';
+  });
+}
+
+// Sort table
+let sortState={};
+function sortTable(tbId,col,th){
+  const tbody=document.querySelector('#'+tbId+' tbody');
+  const rows=[...tbody.querySelectorAll('tr:not(.tbl-sub-row)')];
+  const dir=sortState[tbId]===col+'asc'?'desc':'asc';
+  sortState[tbId]=col+dir;
+  rows.sort((a,b)=>{
+    const va=a.cells[col]?.textContent.trim()||'';
+    const vb=b.cells[col]?.textContent.trim()||'';
+    return dir==='asc'?va.localeCompare(vb,-1,{numeric:true}):vb.localeCompare(va,-1,{numeric:true});
+  });
+  rows.forEach(r=>tbody.appendChild(r));
+  document.querySelectorAll('#'+tbId+' th.sort').forEach(t=>{t.className=t.className.replace(/sort-asc|sort-desc/,'').trim()+' sort-none'});
+  th.classList.remove('sort-none');
+  th.classList.add('sort-'+dir);
+}
+
+// Expandable rows
+function toggleExpand(tr,id){
+  const sub=document.getElementById(id);
+  const icon=tr.querySelector('.expand-icon');
+  if(sub.style.display==='none'){
+    sub.style.display='';tr.classList.add('expanded');
+  }else{
+    sub.style.display='none';tr.classList.remove('expanded');
+  }
+}
+
+// Row select
+function selectRow(tr){
+  tr.classList.toggle('selected');
+  const cb=tr.querySelector('.row-check');
+  if(cb)cb.checked=tr.classList.contains('selected');
+}
+function toggleSelectAll(){
+  const checked=document.getElementById('selectAll').checked;
+  document.querySelectorAll('.row-check').forEach(cb=>{
+    cb.checked=checked;
+    cb.closest('tr').classList.toggle('selected',checked);
+  });
+}
+
+// Generate mission log
+const events=['AUTH.VERIFY','NET.SYNC','MEM.LOAD','GPU.INIT','MDL.LOAD','SYS.OK','THREAT.DETECT','SCAN.COMPLETE','UNIT.DEPLOY','OBJ.UPDATE'];
+const severities=[
+  {label:'INFO',cls:'info'},{label:'OK',cls:'success'},{label:'WARN',cls:'warning'},
+  {label:'ALERT',cls:'danger'},{label:'DEBUG',cls:'dim'}
+];
+const sources=['AXE-BACKEND','AXE-OLLAMA','AXE-OBSERVER','AXE-GATEWAY','AXE-SYNC'];
+const logBody=document.getElementById('logBody');
+const now=new Date();
+for(let i=0;i<24;i++){
+  const t=new Date(now.getTime()-(i*180000));
+  const ev=events[Math.floor(Math.random()*events.length)];
+  const sev=severities[Math.floor(Math.random()*severities.length)];
+  const src=sources[Math.floor(Math.random()*sources.length)];
+  const code=Math.floor(Math.random()*9000)+1000;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${t.toISOString().substr(11,8)} UTC</td><td>${ev} — Event logged at node ${src}</td><td>${src}</td><td><span class="badge ${sev.cls}">${sev.label}</span></td><td style="color:var(--dim)">${code}</td>`;
+  logBody.appendChild(tr);
+}
+
+// Count online nodes
+const onlineCount=document.querySelectorAll('.dot.green').length;
+document.getElementById('onlineCount').textContent=onlineCount+' ONLINE';
+</script>
+</body>
+</html>

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM — Intel Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050a0e;--s:#0a1118;--el:#0f1a24;--c:#00e5ff;--a:#ff9800;--g:#00e676;--r:#ff1744;
+  --text:#c8dce8;--dim:#4a6a7a;--border:rgba(0,229,255,0.12);--glow:rgba(0,229,255,0.25);
+  --font:'Share Tech Mono',monospace;
+  --topbar:44px;--sidebar:200px;--ticker:32px}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--font)}
+/* Grid background */
+body::before{content:'';position:fixed;inset:0;
+  background-image:repeating-linear-gradient(0deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px),
+  repeating-linear-gradient(90deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px);
+  pointer-events:none;z-index:0}
+/* Scan lines */
+body::after{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);
+  pointer-events:none;z-index:9999}
+
+/* ═══════════════════════════════
+   TOP STATUS BAR
+═══════════════════════════════ */
+.topbar{
+  position:fixed;top:0;left:0;right:0;height:var(--topbar);
+  background:rgba(10,17,24,0.97);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;z-index:500;backdrop-filter:blur(20px);
+}
+.topbar::before,.topbar::after{content:'';position:absolute;width:12px;height:12px;border-color:var(--c);border-style:solid}
+.topbar::before{top:0;left:0;border-width:2px 0 0 2px}
+.topbar::after{bottom:0;right:0;border-width:0 2px 2px 0}
+
+/* Logo section */
+.topbar-logo{
+  width:var(--sidebar);flex-shrink:0;
+  padding:0 16px;border-right:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;height:100%;
+}
+.topbar-logo-text{font-size:12px;color:var(--c);letter-spacing:.3em;text-transform:uppercase}
+.topbar-logo-text b{color:var(--a)}
+
+/* Center indicators */
+.topbar-center{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:32px;
+}
+.sys-indicator{display:flex;align-items:center;gap:6px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.sys-indicator .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-g{background:var(--g);box-shadow:0 0 6px var(--g);animation:pulse 2s infinite}
+.dot-a{background:var(--a);box-shadow:0 0 6px var(--a);animation:pulse 1.5s infinite}
+.dot-r{background:var(--r);box-shadow:0 0 6px var(--r);animation:alertPulse 1s infinite}
+.dot-d{background:var(--dim)}
+
+/* Right section */
+.topbar-right{
+  display:flex;align-items:center;gap:20px;padding:0 20px;
+  font-size:10px;color:var(--dim);letter-spacing:.1em;height:100%;
+}
+.clock-block{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.clock-time{font-size:13px;color:var(--c);letter-spacing:.1em}
+.clock-date{font-size:8px;color:var(--dim);letter-spacing:.12em}
+.topbar-back{color:var(--dim);text-decoration:none;font-size:9px;letter-spacing:.1em;
+  border:1px solid var(--border);padding:4px 10px;transition:all .15s}
+.topbar-back:hover{color:var(--c);border-color:var(--c)}
+
+/* ═══════════════════════════════
+   SIDEBAR NAV
+═══════════════════════════════ */
+.sidebar{
+  position:fixed;top:var(--topbar);left:0;width:var(--sidebar);
+  bottom:var(--ticker);background:rgba(10,17,24,0.97);
+  border-right:1px solid var(--border);z-index:400;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sidebar-section{padding:10px 0}
+.sidebar-title{padding:8px 14px 4px;font-size:8px;color:var(--a);letter-spacing:.25em;text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 14px 7px 16px;font-size:10px;color:var(--dim);
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+  transition:all .15s;border-left:2px solid transparent;
+  text-decoration:none;
+}
+.nav-item:hover,.nav-item.active{color:var(--text);background:rgba(0,229,255,0.04);border-left-color:var(--c)}
+.nav-item.active{color:var(--c)}
+.nav-icon{font-size:10px;color:var(--dim);flex-shrink:0;width:14px;text-align:center}
+.nav-item.active .nav-icon,.nav-item:hover .nav-icon{color:var(--c)}
+.nav-badge{margin-left:auto;font-size:8px;padding:1px 5px;
+  background:var(--r);color:#fff;letter-spacing:.05em}
+.nav-badge.info{background:rgba(0,229,255,0.15);color:var(--c)}
+
+/* Sidebar bottom — quick stats */
+.sidebar-bottom{
+  margin-top:auto;border-top:1px solid var(--border);padding:12px;
+}
+.sidebar-stat{display:flex;justify-content:space-between;font-size:9px;
+  color:var(--dim);letter-spacing:.08em;padding:3px 0}
+.sidebar-stat span:last-child{color:var(--text)}
+
+/* ═══════════════════════════════
+   MAIN LAYOUT
+═══════════════════════════════ */
+.layout{
+  position:fixed;
+  top:var(--topbar);left:var(--sidebar);right:0;
+  bottom:var(--ticker);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:0;
+  z-index:1;
+  overflow:hidden;
+}
+
+/* Panel */
+.panel{
+  background:var(--s);border:1px solid var(--border);
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;
+  min-height:0;
+}
+/* Panel header */
+.panel-head{
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;background:rgba(10,17,24,0.6);
+}
+.panel-title{font-size:9px;color:var(--c);letter-spacing:.18em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.panel-tag{font-size:7px;padding:1px 6px;background:var(--c);color:var(--bg);letter-spacing:.12em}
+.panel-tag.amber{background:var(--a)}
+.panel-tag.red{background:var(--r)}
+.panel-tag.green{background:var(--g)}
+.panel-controls{display:flex;gap:6px;align-items:center}
+.panel-btn{
+  font-family:var(--font);font-size:8px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);background:transparent;border:1px solid var(--border);
+  padding:2px 8px;cursor:pointer;transition:all .15s;
+}
+.panel-btn:hover{color:var(--c);border-color:var(--c)}
+/* Panel body */
+.panel-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px;min-height:0}
+.panel-body::-webkit-scrollbar{width:3px}
+.panel-body::-webkit-scrollbar-track{background:transparent}
+.panel-body::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.15)}
+/* Scan line per panel */
+.panel-scan{
+  position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--c),transparent);
+  animation:scanHoriz 3s ease-in-out infinite;opacity:.6;
+  pointer-events:none;z-index:5;
+}
+
+/* ═══════════════════════════════
+   PANEL 1 — THREAT MATRIX
+═══════════════════════════════ */
+.threat-list{display:flex;flex-direction:column;gap:8px}
+.threat-item{
+  background:var(--el);border:1px solid var(--border);
+  padding:10px 12px;display:flex;gap:10px;align-items:flex-start;
+  position:relative;cursor:pointer;transition:border-color .15s;
+}
+.threat-item:hover{border-color:rgba(0,229,255,0.25)}
+.threat-item.critical{border-left:2px solid var(--r)}
+.threat-item.elevated{border-left:2px solid var(--a)}
+.threat-item.monitored{border-left:2px solid var(--c)}
+.threat-sev{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.threat-body{flex:1;min-width:0}
+.threat-name{font-size:10px;color:var(--text);letter-spacing:.08em;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.threat-meta{font-size:9px;color:var(--dim);letter-spacing:.06em}
+.threat-time{font-size:8px;color:var(--dim);white-space:nowrap;flex-shrink:0}
+
+/* ═══════════════════════════════
+   PANEL 2 — INTEL FEED / CARDS
+═══════════════════════════════ */
+.intel-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini-intel-card{
+  background:var(--el);border:1px solid var(--border);
+  padding:12px;position:relative;overflow:hidden;
+  transition:border-color .2s;cursor:pointer;
+}
+.mini-intel-card:hover{border-color:rgba(0,229,255,0.25)}
+.mini-intel-card::before,.mini-intel-card::after{
+  content:'';position:absolute;width:8px;height:8px;
+  border-color:var(--c);border-style:solid;pointer-events:none;
+}
+.mini-intel-card::before{top:0;left:0;border-width:1px 0 0 1px}
+.mini-intel-card::after{bottom:0;right:0;border-width:0 1px 1px 0}
+.mic-label{font-size:7px;color:var(--a);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+.mic-val{font-size:22px;color:var(--c);line-height:1;margin-bottom:3px}
+.mic-sub{font-size:8px;color:var(--dim);letter-spacing:.08em}
+.mic-bar{height:2px;background:rgba(0,229,255,0.1);margin-top:8px}
+.mic-bar-fill{height:100%;background:var(--c)}
+
+/* ═══════════════════════════════
+   PANEL 3 — LIVE LOG
+═══════════════════════════════ */
+.log-feed{display:flex;flex-direction:column;gap:0;font-size:9px;letter-spacing:.06em}
+.log-entry{
+  padding:5px 0;border-bottom:1px solid rgba(0,229,255,0.04);
+  display:flex;gap:10px;align-items:baseline;line-height:1.5;
+}
+.log-ts{color:var(--dim);flex-shrink:0;font-size:8px}
+.log-module{color:var(--c);flex-shrink:0;min-width:80px}
+.log-msg{color:var(--dim);flex:1}
+.log-entry.ok .log-module{color:var(--g)}
+.log-entry.warn .log-module{color:var(--a)}
+.log-entry.alert .log-module{color:var(--r)}
+.log-entry.alert .log-msg{color:rgba(255,23,68,0.7)}
+
+/* ═══════════════════════════════
+   PANEL 4 — SYSTEM METRICS
+═══════════════════════════════ */
+.metrics-grid{display:flex;flex-direction:column;gap:10px}
+.metric-row{display:flex;flex-direction:column;gap:3px}
+.metric-label{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+.metric-label span:first-child{color:var(--dim)}
+.metric-bar-track{height:3px;background:rgba(0,229,255,0.08);position:relative;overflow:hidden}
+.metric-bar-fill{height:100%;transition:width .4s}
+.metrics-row-2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+.metric-box{background:var(--el);border:1px solid var(--border);padding:10px;text-align:center}
+.metric-box-val{font-size:20px;color:var(--c);line-height:1;margin-bottom:3px}
+.metric-box-lbl{font-size:7px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
+/* Mini radar */
+.mini-radar{
+  width:80px;height:80px;border-radius:50%;position:relative;
+  background:radial-gradient(circle,transparent 29%,rgba(0,229,255,0.05) 30%,transparent 31%,
+    transparent 49%,rgba(0,229,255,0.05) 50%,transparent 51%,
+    transparent 69%,rgba(0,229,255,0.05) 70%,transparent 71%);
+  border:1px solid rgba(0,229,255,0.15);flex-shrink:0;
+}
+.mini-radar-beam{position:absolute;width:50%;height:50%;top:0;left:50%;transform-origin:0% 100%;
+  background:linear-gradient(75deg,transparent 30%,rgba(0,229,255,0.5));
+  animation:spin 2s linear infinite;border-radius:0 100% 0 0}
+.mini-radar-blip{position:absolute;width:3px;height:3px;background:var(--c);border-radius:50%;animation:blipFade 2s infinite}
+.metrics-bottom{display:flex;gap:12px;align-items:center;margin-top:10px}
+.waveform{display:flex;gap:2px;align-items:center;height:24px}
+.wave-bar{width:2px;background:var(--c);animation:waveform 1.2s ease-in-out infinite;opacity:.7}
+.wave-bar:nth-child(2){animation-delay:.1s}.wave-bar:nth-child(3){animation-delay:.2s}
+.wave-bar:nth-child(4){animation-delay:.3s}.wave-bar:nth-child(5){animation-delay:.4s}
+.wave-bar:nth-child(6){animation-delay:.5s}.wave-bar:nth-child(7){animation-delay:.6s}
+.wave-bar:nth-child(8){animation-delay:.7s}
+
+/* ═══════════════════════════════
+   BOTTOM TICKER
+═══════════════════════════════ */
+.ticker{
+  position:fixed;bottom:0;left:0;right:0;height:var(--ticker);
+  background:rgba(10,17,24,0.97);border-top:1px solid var(--border);
+  overflow:hidden;z-index:500;display:flex;align-items:center;
+}
+.ticker-label{
+  flex-shrink:0;padding:0 14px;font-size:8px;color:var(--bg);
+  background:var(--c);height:100%;display:flex;align-items:center;
+  letter-spacing:.15em;text-transform:uppercase;
+}
+.ticker-scroll{
+  white-space:nowrap;font-size:9px;color:var(--dim);letter-spacing:.1em;
+  animation:tickerScroll 50s linear infinite;padding-left:20px;
+}
+.ticker-scroll .hl{color:var(--c)}.ticker-scroll .am{color:var(--a)}
+.ticker-scroll .rd{color:var(--r)}
+
+/* ═══════════════════════════════
+   PANEL RESIZE HANDLE
+═══════════════════════════════ */
+.resize-handle{
+  position:absolute;right:0;top:0;bottom:0;width:4px;
+  cursor:col-resize;z-index:10;
+  background:transparent;transition:background .15s;
+}
+.resize-handle:hover{background:rgba(0,229,255,0.15)}
+
+/* ═══════════════════════════════
+   DATA DIVIDER
+═══════════════════════════════ */
+.data-divider{
+  border:none;border-top:1px solid var(--border);margin:10px 0;
+  position:relative;
+}
+.data-divider::before{
+  content:attr(data-label);position:absolute;left:0;top:-8px;
+  font-size:7px;color:var(--dim);letter-spacing:.15em;
+  background:var(--el);padding-right:8px;text-transform:uppercase;
+}
+
+/* ── KEYFRAMES ── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes alertPulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes blipFade{0%{opacity:1;box-shadow:0 0 4px var(--c)}70%{opacity:.3}100%{opacity:.1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes scanHoriz{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+@keyframes waveform{0%,100%{height:4px}50%{height:20px}}
+@keyframes tickerScroll{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOP STATUS BAR ═══ -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <polygon points="10,1 19,5.5 19,14.5 10,19 1,14.5 1,5.5" stroke="#00e5ff" stroke-width="1" fill="none" opacity=".5"/>
+      <polygon points="10,4 16,7.5 16,12.5 10,16 4,12.5 4,7.5" stroke="#00e5ff" stroke-width="1" fill="none"/>
+      <circle cx="10" cy="10" r="2" fill="#00e5ff"/>
+    </svg>
+    <span class="topbar-logo-text">AXIOM <b>INTEL</b></span>
+  </div>
+
+  <div class="topbar-center">
+    <div class="sys-indicator">
+      <span class="dot dot-g"></span>BACKEND ONLINE
+    </div>
+    <div class="sys-indicator">
+      <span class="dot dot-g"></span>OLLAMA ACTIVE
+    </div>
+    <div class="sys-indicator">
+      <span class="dot dot-r"></span>GATEWAY-03 SUSPENDED
+    </div>
+    <div class="sys-indicator">
+      <span class="dot dot-a"></span>MEMORY 87%
+    </div>
+    <div class="sys-indicator">
+      <span class="dot dot-g"></span>TUNNEL CONNECTED
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <div class="clock-block">
+      <div class="clock-time" id="clock">--:--:--</div>
+      <div class="clock-date" id="clockDate">UTC</div>
+    </div>
+    <a class="topbar-back" href="../showcase/index.html">← BACK</a>
+  </div>
+</div>
+
+<!-- ═══ SIDEBAR NAV ═══ -->
+<div class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-title">// Intelligence</div>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon">⬡</span>Overview
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">◈</span>Threat Matrix
+      <span class="nav-badge">7</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">⊕</span>Unit Registry
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">≋</span>Sector Watch
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-title">// Operations</div>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">▶</span>Active Ops
+      <span class="nav-badge info">5</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">☰</span>Mission Log
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">⌖</span>Targeting
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-title">// System</div>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">≡</span>Services
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">⊗</span>Agents
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">◉</span>Memory
+    </a>
+    <a class="nav-item" href="../showcase/index.html">
+      <span class="nav-icon">↩</span>Design System
+    </a>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="sidebar-stat"><span>Uptime</span><span style="color:var(--g)">14d 07h</span></div>
+    <div class="sidebar-stat"><span>Threats</span><span style="color:var(--r)">7 active</span></div>
+    <div class="sidebar-stat"><span>GPU Mem</span><span style="color:var(--a)">87%</span></div>
+    <div class="sidebar-stat"><span>Agents</span><span>3 online</span></div>
+  </div>
+</div>
+
+<!-- ═══ 4-PANEL MAIN GRID ═══ -->
+<div class="layout">
+
+  <!-- PANEL 1: THREAT MATRIX -->
+  <div class="panel" style="border-right:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div class="panel-scan"></div>
+    <div class="panel-head">
+      <div class="panel-title">
+        <span class="panel-tag red">LIVE</span>
+        Threat Matrix
+      </div>
+      <div class="panel-controls">
+        <span style="font-size:8px;color:var(--r);letter-spacing:.1em" id="threatCount">7 ACTIVE</span>
+        <button class="panel-btn">FILTER</button>
+        <button class="panel-btn">EXPORT</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="threat-list" id="threatList"></div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: INTEL OVERVIEW -->
+  <div class="panel" style="border-bottom:1px solid var(--border)">
+    <div class="panel-scan" style="animation-delay:.7s"></div>
+    <div class="panel-head">
+      <div class="panel-title">
+        <span class="panel-tag">NOW</span>
+        Intel Overview
+      </div>
+      <div class="panel-controls">
+        <button class="panel-btn">REFRESH</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="intel-grid">
+        <div class="mini-intel-card">
+          <div class="mic-label">Active Threats</div>
+          <div class="mic-val" style="color:var(--r)">7</div>
+          <div class="mic-sub">3 critical · 4 elevated</div>
+          <div class="mic-bar"><div class="mic-bar-fill" style="width:58%;background:var(--r)"></div></div>
+        </div>
+        <div class="mini-intel-card">
+          <div class="mic-label">Deployed Units</div>
+          <div class="mic-val" style="color:var(--c)">12</div>
+          <div class="mic-sub">of 20 capacity</div>
+          <div class="mic-bar"><div class="mic-bar-fill" style="width:60%;background:var(--c)"></div></div>
+        </div>
+        <div class="mini-intel-card">
+          <div class="mic-label">Sectors Clear</div>
+          <div class="mic-val" style="color:var(--g)">8</div>
+          <div class="mic-sub">of 12 monitored</div>
+          <div class="mic-bar"><div class="mic-bar-fill" style="width:67%;background:var(--g)"></div></div>
+        </div>
+        <div class="mini-intel-card">
+          <div class="mic-label">System Health</div>
+          <div class="mic-val" style="color:var(--a)">87%</div>
+          <div class="mic-sub">1 node suspended</div>
+          <div class="mic-bar"><div class="mic-bar-fill" style="width:87%;background:var(--a)"></div></div>
+        </div>
+      </div>
+
+      <hr class="data-divider" style="margin-top:14px" data-label="// Sector Status">
+
+      <div style="display:flex;flex-direction:column;gap:5px;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:9px;letter-spacing:.08em;padding:4px 0;border-bottom:1px solid rgba(0,229,255,0.04)">
+          <span style="color:var(--dim)">ALPHA-7</span>
+          <div style="display:flex;align-items:center;gap:6px"><span style="width:80px;height:2px;background:rgba(0,229,255,0.1);display:inline-block;position:relative"><span style="position:absolute;top:0;left:0;width:100%;height:100%;background:var(--g)"></span></span><span style="color:var(--g)">CLEAR</span></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;letter-spacing:.08em;padding:4px 0;border-bottom:1px solid rgba(0,229,255,0.04)">
+          <span style="color:var(--dim)">BRAVO-3</span>
+          <div style="display:flex;align-items:center;gap:6px"><span style="width:80px;height:2px;background:rgba(0,229,255,0.1);display:inline-block;position:relative"><span style="position:absolute;top:0;left:0;width:100%;height:100%;background:var(--r)"></span></span><span style="color:var(--r)">BREACH</span></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;letter-spacing:.08em;padding:4px 0;border-bottom:1px solid rgba(0,229,255,0.04)">
+          <span style="color:var(--dim)">CHARLIE-7</span>
+          <div style="display:flex;align-items:center;gap:6px"><span style="width:80px;height:2px;background:rgba(0,229,255,0.1);display:inline-block;position:relative"><span style="position:absolute;top:0;left:0;width:65%;height:100%;background:var(--a)"></span></span><span style="color:var(--a)">ELEVATED</span></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;letter-spacing:.08em;padding:4px 0">
+          <span style="color:var(--dim)">DELTA-1</span>
+          <div style="display:flex;align-items:center;gap:6px"><span style="width:80px;height:2px;background:rgba(0,229,255,0.1);display:inline-block;position:relative"><span style="position:absolute;top:0;left:0;width:100%;height:100%;background:var(--g)"></span></span><span style="color:var(--g)">CLEAR</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: LIVE LOG -->
+  <div class="panel" style="border-right:1px solid var(--border)">
+    <div class="panel-scan" style="animation-delay:1.4s"></div>
+    <div class="panel-head">
+      <div class="panel-title">
+        <span class="panel-tag green">STREAM</span>
+        Mission Log
+      </div>
+      <div class="panel-controls">
+        <span style="font-size:8px;color:var(--dim);letter-spacing:.08em" id="logCount">0 ENTRIES</span>
+        <button class="panel-btn" onclick="clearLog()">CLEAR</button>
+        <button class="panel-btn" id="pauseBtn" onclick="toggleLogPause()">PAUSE</button>
+      </div>
+    </div>
+    <div class="panel-body" id="logPanel">
+      <div class="log-feed" id="logFeed"></div>
+    </div>
+  </div>
+
+  <!-- PANEL 4: SYSTEM METRICS -->
+  <div class="panel">
+    <div class="panel-scan" style="animation-delay:2.1s"></div>
+    <div class="panel-head">
+      <div class="panel-title">
+        <span class="panel-tag amber">LIVE</span>
+        System Metrics
+      </div>
+      <div class="panel-controls">
+        <button class="panel-btn">DETAIL</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="metrics-grid">
+        <div class="metric-row">
+          <div class="metric-label"><span>CPU Load</span><span style="color:var(--g)" id="cpuVal">47%</span></div>
+          <div class="metric-bar-track"><div class="metric-bar-fill" id="cpuBar" style="width:47%;background:var(--g)"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-label"><span>GPU Memory</span><span style="color:var(--a)" id="gpuVal">87%</span></div>
+          <div class="metric-bar-track"><div class="metric-bar-fill" id="gpuBar" style="width:87%;background:var(--a)"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-label"><span>Network I/O</span><span style="color:var(--c)" id="netVal">247 MB/s</span></div>
+          <div class="metric-bar-track"><div class="metric-bar-fill" id="netBar" style="width:72%;background:var(--c)"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-label"><span>Disk Write</span><span style="color:var(--dim)" id="diskVal">12 MB/s</span></div>
+          <div class="metric-bar-track"><div class="metric-bar-fill" style="width:8%;background:var(--dim)"></div></div>
+        </div>
+      </div>
+
+      <div class="metrics-row-2">
+        <div class="metric-box">
+          <div class="metric-box-val" style="color:var(--g)">99.7<span style="font-size:10px;color:var(--dim)">%</span></div>
+          <div class="metric-box-lbl">Uptime</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-box-val">64<span style="font-size:10px;color:var(--dim)">GB</span></div>
+          <div class="metric-box-lbl">RAM</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-box-val" style="color:var(--a)">32<span style="font-size:10px;color:var(--dim)">c</span></div>
+          <div class="metric-box-lbl">GPU Cores</div>
+        </div>
+      </div>
+
+      <div class="metrics-bottom">
+        <div class="mini-radar">
+          <div class="mini-radar-beam"></div>
+          <div class="mini-radar-blip" style="top:30%;left:65%"></div>
+          <div class="mini-radar-blip" style="top:60%;left:40%;animation-delay:.8s"></div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:8px;color:var(--dim);letter-spacing:.1em;margin-bottom:6px">SIGNAL WAVEFORM</div>
+          <div class="waveform">
+            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div>
+          </div>
+          <div style="font-size:8px;color:var(--dim);letter-spacing:.08em;margin-top:6px">
+            MODEL: qwen2.5:32b-instruct-q4_K_M
+          </div>
+          <div style="font-size:8px;color:var(--c);letter-spacing:.08em;margin-top:2px" id="inferTime">
+            LAST INFERENCE: 0.8s
+          </div>
+        </div>
+      </div>
+
+      <hr class="data-divider" data-label="// Active Agents">
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:9px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--g);box-shadow:0 0 5px var(--g);flex-shrink:0"></span>
+            <span style="color:var(--text)">FORGE</span>
+          </div>
+          <span style="color:var(--dim)">qwen2.5:32b · Architect</span>
+          <span style="color:var(--g)">ACTIVE</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:9px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--g);box-shadow:0 0 5px var(--g);flex-shrink:0"></span>
+            <span style="color:var(--text)">CORTANA</span>
+          </div>
+          <span style="color:var(--dim)">qwen2.5:32b · Ops</span>
+          <span style="color:var(--g)">ACTIVE</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:9px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--a);box-shadow:0 0 5px var(--a);flex-shrink:0"></span>
+            <span style="color:var(--text)">KLAUS</span>
+          </div>
+          <span style="color:var(--dim)">imi-lean · Assistant</span>
+          <span style="color:var(--a)">STANDBY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /layout -->
+
+<!-- ═══ BOTTOM TICKER ═══ -->
+<div class="ticker">
+  <span class="ticker-label">INTEL FEED</span>
+  <div class="ticker-scroll" id="tickerScroll">
+    <span class="hl">AXIOM</span> INTEL DASHBOARD — LIVE &nbsp;&#x2502;&nbsp;
+    <span class="rd">⚠ BREACH DETECTED</span> SECTOR BRAVO-3 &nbsp;&#x2502;&nbsp;
+    <span class="am">GATEWAY-03 SUSPENDED</span> — INVESTIGATING &nbsp;&#x2502;&nbsp;
+    GPU MEMORY 87% — MONITOR &nbsp;&#x2502;&nbsp;
+    <span class="hl">NIGHTWATCH-7</span> ACTIVE — CHARLIE-7 &nbsp;&#x2502;&nbsp;
+    ALL BACKEND NODES <span class="hl">OPERATIONAL</span> &nbsp;&#x2502;&nbsp;
+    MEMORY SYNC DAEMON ACTIVE — WS:8766 &nbsp;&#x2502;&nbsp;
+    <span class="am">3 CRITICAL</span> THREATS REQUIRE REVIEW &nbsp;&#x2502;&nbsp;
+    FORGE · CORTANA · KLAUS ONLINE &nbsp;&#x2502;&nbsp;
+    ZERO API SPEND POLICY — LOCAL INFERENCE ACTIVE &nbsp;&#x2502;&nbsp;
+  </div>
+</div>
+
+<script>
+/* ── CLOCK ── */
+function updateClock(){
+  const d=new Date();
+  document.getElementById('clock').textContent=d.toISOString().substr(11,8);
+  document.getElementById('clockDate').textContent=d.toISOString().substr(0,10)+' UTC';
+}
+setInterval(updateClock,1000);updateClock();
+
+/* ── THREATS ── */
+const threats=[
+  {id:'THR-001',name:'INTRUSION // AXE-GATEWAY-03',sector:'Bravo-3',sev:'critical',time:'14:29'},
+  {id:'THR-007',name:'SIGNAL ANOMALY // Freq 437.5MHz',sector:'Charlie-7',sev:'critical',time:'14:30'},
+  {id:'THR-012',name:'UNAUTHORIZED ACCESS ATTEMPT',sector:'Alpha-7',sev:'critical',time:'14:31'},
+  {id:'THR-019',name:'MOVEMENT CONTACT // 3 bogeys',sector:'Bravo-9',sev:'elevated',time:'14:28'},
+  {id:'THR-024',name:'NETWORK PROBE // Port scan',sector:'Delta-1',sev:'elevated',time:'14:25'},
+  {id:'THR-031',name:'ACOUSTIC SIGNATURE // Unknown',sector:'Echo-5',sev:'elevated',time:'14:22'},
+  {id:'THR-038',name:'THERMAL TRACK // Low altitude',sector:'Foxtrot-2',sev:'monitored',time:'14:17'},
+];
+const sevColor={critical:'var(--r)',elevated:'var(--a)',monitored:'var(--c)'};
+const threatList=document.getElementById('threatList');
+threats.forEach(t=>{
+  const div=document.createElement('div');
+  div.className='threat-item '+t.sev;
+  div.innerHTML=`
+    <span class="threat-sev" style="background:${sevColor[t.sev]};box-shadow:0 0 5px ${sevColor[t.sev]}"></span>
+    <div class="threat-body">
+      <div class="threat-name" style="color:${t.sev==='critical'?'var(--r)':t.sev==='elevated'?'var(--a)':'var(--c)'}">${t.name}</div>
+      <div class="threat-meta">${t.id} // ${t.sector}</div>
+    </div>
+    <span class="threat-time">${t.time}</span>
+  `;
+  threatList.appendChild(div);
+});
+
+/* ── LIVE LOG ── */
+const logModules=['AUTH.VERIFY','NET.SYNC','MEM.LOAD','GPU.MONITOR','THREAT.DETECT',
+  'SCAN.RUN','UNIT.CHECK','SYS.HEALTH','OLLAMA.INFER','GATEWAY.ALERT'];
+const logMsgs=[
+  ['Token validated — operator Ghost','ok'],
+  ['Tunnel keepalive sent','ok'],
+  ['Reading 247 memory entries','ok'],
+  ['GPU at 87% — threshold approached','warn'],
+  ['Contact detected sector Charlie-7','alert'],
+  ['Sector Alpha-7 sweep complete','ok'],
+  ['Unit BRAVO reporting in','ok'],
+  ['All primary services nominal','ok'],
+  ['Inference complete — 0.8s','ok'],
+  ['AXE-GATEWAY-03 suspended — breach attempt','alert'],
+];
+let logCount=0;
+let logPaused=false;
+const logFeed=document.getElementById('logFeed');
+const logPanel=document.getElementById('logPanel');
+function addLogEntry(){
+  if(logPaused)return;
+  const d=new Date();
+  const ts=d.toISOString().substr(11,8);
+  const idx=Math.floor(Math.random()*logModules.length);
+  const mod=logModules[idx];
+  const [msg,type]=logMsgs[idx];
+  const div=document.createElement('div');
+  div.className='log-entry '+(type||'');
+  div.innerHTML=`<span class="log-ts">${ts}</span><span class="log-module">${mod}</span><span class="log-msg">${msg}</span>`;
+  logFeed.appendChild(div);
+  logCount++;
+  document.getElementById('logCount').textContent=logCount+' ENTRIES';
+  // Auto-scroll
+  logPanel.scrollTop=logPanel.scrollHeight;
+  // Max 100 entries
+  if(logFeed.children.length>100)logFeed.removeChild(logFeed.firstChild);
+}
+// Seed with 8 initial entries
+for(let i=0;i<8;i++)addLogEntry();
+// Live feed
+setInterval(addLogEntry,1800+Math.random()*1200);
+
+function clearLog(){logFeed.innerHTML='';logCount=0;document.getElementById('logCount').textContent='0 ENTRIES';}
+function toggleLogPause(){
+  logPaused=!logPaused;
+  document.getElementById('pauseBtn').textContent=logPaused?'RESUME':'PAUSE';
+}
+
+/* ── METRICS LIVE UPDATE ── */
+let cpu=47,gpu=87;
+function updateMetrics(){
+  cpu=Math.max(10,Math.min(99,cpu+(Math.random()-0.5)*8));
+  gpu=Math.max(80,Math.min(99,gpu+(Math.random()-0.5)*3));
+  const net=Math.floor(200+Math.random()*100);
+  const cpuColor=cpu>80?'var(--r)':cpu>60?'var(--a)':'var(--g)';
+  const gpuColor=gpu>85?'var(--r)':gpu>70?'var(--a)':'var(--g)';
+  document.getElementById('cpuVal').textContent=cpu.toFixed(0)+'%';
+  document.getElementById('cpuVal').style.color=cpuColor;
+  document.getElementById('cpuBar').style.width=cpu.toFixed(0)+'%';
+  document.getElementById('cpuBar').style.background=cpuColor;
+  document.getElementById('gpuVal').textContent=gpu.toFixed(0)+'%';
+  document.getElementById('gpuBar').style.width=gpu.toFixed(0)+'%';
+  document.getElementById('netVal').textContent=net+' MB/s';
+  document.getElementById('netBar').style.width=(net/400*100).toFixed(0)+'%';
+  // Random inference time
+  const inf=(0.6+Math.random()*2).toFixed(1);
+  document.getElementById('inferTime').textContent='LAST INFERENCE: '+inf+'s';
+}
+setInterval(updateMetrics,3000);
+
+/* ── NAV ACTIVE STATE ── */
+document.querySelectorAll('.nav-item').forEach(a=>{
+  a.addEventListener('click',e=>{
+    if(!a.href||a.href.includes('index.html'))return;
+    e.preventDefault();
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    a.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIOM — Form Elements</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050a0e;--s:#0a1118;--el:#0f1a24;--c:#00e5ff;--a:#ff9800;--g:#00e676;--r:#ff1744;
+  --text:#c8dce8;--dim:#4a6a7a;--border:rgba(0,229,255,0.12);--glow:rgba(0,229,255,0.25);
+  --font:'Share Tech Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden;padding:44px 0 32px 200px}
+body::before{content:'';position:fixed;inset:0;
+  background-image:repeating-linear-gradient(0deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px),
+  repeating-linear-gradient(90deg,rgba(0,229,255,0.03) 0 1px,transparent 1px 40px);
+  pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);
+  pointer-events:none;z-index:9999}
+
+/* ── TOP BAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:44px;background:rgba(10,17,24,0.94);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;z-index:100;backdrop-filter:blur(16px)}
+.topbar::before,.topbar::after{content:'';position:absolute;width:12px;height:12px;border-color:var(--c);border-style:solid}
+.topbar::before{top:0;left:0;border-width:2px 0 0 2px}
+.topbar::after{bottom:0;right:0;border-width:0 2px 2px 0}
+.topbar-title{font-size:13px;color:var(--c);letter-spacing:.35em;text-transform:uppercase}
+.topbar-title b{color:var(--a)}
+.topbar-right{display:flex;align-items:center;gap:20px;font-size:10px;color:var(--dim);letter-spacing:.12em}
+.dot-live{width:6px;height:6px;border-radius:50%;background:var(--g);display:inline-block;
+  box-shadow:0 0 8px var(--g);animation:pulse 2s infinite;margin-right:4px}
+.clock{color:var(--c);font-size:11px;letter-spacing:.1em}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:44px;left:0;width:200px;bottom:32px;background:rgba(10,17,24,0.96);
+  border-right:1px solid var(--border);z-index:90;padding:12px 0;overflow-y:auto}
+.nav-sec{padding:12px 14px 4px;font-size:8px;color:var(--a);letter-spacing:.25em;text-transform:uppercase}
+.nav-a{display:block;padding:6px 14px 6px 20px;font-size:10px;color:var(--dim);letter-spacing:.1em;
+  text-decoration:none;cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-transform:uppercase}
+.nav-a:hover,.nav-a.active{color:var(--text);background:rgba(0,229,255,0.04);border-left-color:var(--c)}
+
+/* ── BOTTOM TICKER ── */
+.ticker{position:fixed;bottom:0;left:0;right:0;height:32px;background:rgba(10,17,24,0.96);
+  border-top:1px solid var(--border);overflow:hidden;z-index:100;display:flex;align-items:center}
+.ticker-scroll{white-space:nowrap;font-size:10px;color:var(--dim);letter-spacing:.1em;
+  animation:tickerScroll 40s linear infinite}
+.ticker-scroll .hl{color:var(--c)}.ticker-scroll .am{color:var(--a)}
+
+/* ── MAIN ── */
+.main{padding:32px;position:relative;z-index:1}
+
+/* ── SECTION ── */
+.sec{margin-bottom:56px}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.sec-id{font-size:9px;color:var(--bg);background:var(--c);padding:2px 8px;letter-spacing:.15em}
+.sec-t{font-size:13px;color:var(--c);letter-spacing:.2em;text-transform:uppercase}
+.sec-desc{font-size:10px;color:var(--dim);margin-bottom:16px;letter-spacing:.05em;line-height:1.7}
+
+/* ── CARD ── */
+.card{background:var(--s);border:1px solid var(--border);padding:24px;position:relative;overflow:hidden;margin-bottom:16px}
+.card::before,.card::after{content:'';position:absolute;width:12px;height:12px;border-color:var(--c);border-style:solid;pointer-events:none}
+.card::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.card::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+.card-label{font-size:8px;color:var(--a);letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:1100px){.g2,.g3{grid-template-columns:1fr}}
+
+/* ══════════════════════════════════════════
+   FORM ELEMENTS
+══════════════════════════════════════════ */
+
+/* Field wrapper */
+.field{margin-bottom:20px;position:relative}
+.field-label{font-size:9px;color:var(--a);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px;display:block}
+.field-hint{font-size:9px;color:var(--dim);letter-spacing:.08em;margin-top:5px}
+.field-error{font-size:9px;color:var(--r);letter-spacing:.08em;margin-top:5px}
+
+/* Text Input */
+.hud-input{
+  font-family:var(--font);font-size:11px;letter-spacing:.1em;
+  color:var(--text);background:var(--el);
+  border:1px solid var(--border);
+  padding:10px 14px;width:100%;outline:none;
+  transition:all .2s;
+  position:relative;
+}
+.hud-input::placeholder{color:var(--dim);letter-spacing:.08em}
+.hud-input:focus{
+  border-color:var(--c);
+  box-shadow:0 0 0 1px var(--c),0 0 14px rgba(0,229,255,0.18);
+  color:var(--c);
+}
+.hud-input:focus::placeholder{opacity:.4}
+
+/* Input with corner brackets */
+.input-wrap{position:relative;display:inline-block;width:100%}
+.input-wrap::before,.input-wrap::after{
+  content:'';position:absolute;width:8px;height:8px;
+  border-color:var(--dim);border-style:solid;
+  transition:border-color .2s;pointer-events:none;z-index:1;
+}
+.input-wrap::before{top:0;left:0;border-width:1px 0 0 1px}
+.input-wrap::after{bottom:0;right:0;border-width:0 1px 1px 0}
+.input-wrap:focus-within::before,.input-wrap:focus-within::after{border-color:var(--c)}
+
+/* Input states */
+.hud-input.valid{border-color:var(--g);box-shadow:0 0 10px rgba(0,230,118,0.15)}
+.hud-input.invalid{border-color:var(--r);box-shadow:0 0 10px rgba(255,23,68,0.15)}
+.hud-input.warning{border-color:var(--a);box-shadow:0 0 10px rgba(255,152,0,0.15)}
+
+/* Input with icon prefix */
+.input-icon-wrap{position:relative;width:100%}
+.input-icon-wrap .input-icon{
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  color:var(--dim);font-size:12px;pointer-events:none;transition:color .2s;
+}
+.input-icon-wrap:focus-within .input-icon{color:var(--c)}
+.input-icon-wrap .hud-input{padding-left:34px}
+
+/* Search input */
+.search-input-wrap{position:relative;width:100%}
+.search-input-wrap::before{
+  content:'[//]';
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  color:var(--dim);font-size:9px;letter-spacing:.1em;pointer-events:none;
+  transition:color .2s;
+}
+.search-input-wrap:focus-within::before{color:var(--c)}
+.search-input-wrap .hud-input{padding-left:48px}
+.search-btn{
+  position:absolute;right:0;top:0;bottom:0;
+  font-family:var(--font);font-size:9px;letter-spacing:.15em;
+  color:var(--bg);background:var(--c);border:none;
+  padding:0 16px;cursor:pointer;text-transform:uppercase;
+  transition:all .2s;
+}
+.search-btn:hover{box-shadow:0 0 14px rgba(0,229,255,0.4)}
+
+/* Textarea */
+.hud-textarea{
+  font-family:var(--font);font-size:11px;letter-spacing:.08em;
+  color:var(--text);background:var(--el);
+  border:1px solid var(--border);
+  padding:10px 14px;width:100%;outline:none;
+  resize:vertical;min-height:80px;line-height:1.7;
+  transition:all .2s;
+}
+.hud-textarea::placeholder{color:var(--dim)}
+.hud-textarea:focus{border-color:var(--c);box-shadow:0 0 0 1px var(--c),0 0 14px rgba(0,229,255,0.18)}
+
+/* Select / Dropdown */
+.hud-select-wrap{position:relative;width:100%}
+.hud-select-wrap::after{
+  content:'▼';position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  color:var(--c);font-size:8px;pointer-events:none;letter-spacing:0;
+}
+.hud-select{
+  font-family:var(--font);font-size:11px;letter-spacing:.1em;
+  color:var(--text);background:var(--el);
+  border:1px solid var(--border);
+  padding:10px 36px 10px 14px;width:100%;outline:none;
+  appearance:none;-webkit-appearance:none;cursor:pointer;
+  transition:all .2s;text-transform:uppercase;
+}
+.hud-select:focus{border-color:var(--c);box-shadow:0 0 0 1px var(--c),0 0 14px rgba(0,229,255,0.18)}
+.hud-select option{background:var(--s);color:var(--text)}
+
+/* Radio — Radar dots */
+.radio-group{display:flex;flex-direction:column;gap:10px}
+.radio-group.inline{flex-direction:row;flex-wrap:wrap;gap:16px}
+.radio-label{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:10px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;transition:color .15s}
+.radio-label:hover{color:var(--text)}
+.radio-label input[type=radio]{display:none}
+.radio-dot{
+  width:16px;height:16px;border-radius:50%;
+  border:1px solid var(--dim);
+  position:relative;flex-shrink:0;
+  transition:all .2s;
+  background:var(--el);
+}
+.radio-label:hover .radio-dot{border-color:var(--c)}
+.radio-label input[type=radio]:checked ~ .radio-dot{
+  border-color:var(--c);
+  box-shadow:0 0 0 1px var(--c),0 0 8px rgba(0,229,255,0.3);
+}
+.radio-label input[type=radio]:checked ~ .radio-dot::after{
+  content:'';position:absolute;top:50%;left:50%;
+  width:6px;height:6px;background:var(--c);border-radius:50%;
+  transform:translate(-50%,-50%);box-shadow:0 0 6px var(--c);
+}
+.radio-label input[type=radio]:checked ~ span:last-child{color:var(--c)}
+
+/* Checkbox — Targeting reticle */
+.check-group{display:flex;flex-direction:column;gap:10px}
+.check-label{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:10px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;transition:color .15s}
+.check-label:hover{color:var(--text)}
+.check-label input[type=checkbox]{display:none}
+.check-box{
+  width:16px;height:16px;
+  border:1px solid var(--dim);
+  position:relative;flex-shrink:0;
+  transition:all .2s;
+  background:var(--el);
+}
+.check-label:hover .check-box{border-color:var(--c)}
+.check-label input[type=checkbox]:checked ~ .check-box{
+  border-color:var(--c);
+  box-shadow:0 0 0 1px var(--c),0 0 8px rgba(0,229,255,0.3);
+  background:rgba(0,229,255,0.08);
+}
+.check-label input[type=checkbox]:checked ~ .check-box::before,.check-label input[type=checkbox]:checked ~ .check-box::after{
+  content:'';position:absolute;background:var(--c);
+}
+.check-label input[type=checkbox]:checked ~ .check-box::before{
+  width:1px;height:100%;top:0;left:50%;transform:translateX(-50%);
+}
+.check-label input[type=checkbox]:checked ~ .check-box::after{
+  width:100%;height:1px;top:50%;left:0;transform:translateY(-50%);
+}
+/* corner brackets on checkbox */
+.check-box::before,.check-box::after{content:'';position:absolute;}
+.check-label input[type=checkbox]:not(:checked) ~ .check-box::before{
+  width:4px;height:4px;top:-1px;left:-1px;border-top:1px solid var(--dim);border-left:1px solid var(--dim);background:none;
+}
+.check-label input[type=checkbox]:not(:checked) ~ .check-box::after{
+  width:4px;height:4px;bottom:-1px;right:-1px;border-bottom:1px solid var(--dim);border-right:1px solid var(--dim);background:none;
+}
+.check-label input[type=checkbox]:checked ~ span:last-child{color:var(--c)}
+
+/* Toggle switch */
+.toggle-label{display:flex;align-items:center;gap:12px;cursor:pointer;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.toggle-label input[type=checkbox]{display:none}
+.toggle-track{
+  width:40px;height:20px;
+  background:var(--el);border:1px solid var(--dim);
+  position:relative;flex-shrink:0;transition:all .25s;
+}
+.toggle-track::before{
+  content:'OFF';position:absolute;right:5px;top:50%;transform:translateY(-50%);
+  font-size:7px;color:var(--dim);letter-spacing:.05em;transition:all .25s;
+}
+.toggle-thumb{
+  position:absolute;top:2px;left:2px;
+  width:14px;height:14px;
+  background:var(--dim);
+  transition:all .25s;
+}
+.toggle-label input[type=checkbox]:checked ~ .toggle-track{
+  border-color:var(--c);
+  background:rgba(0,229,255,0.08);
+  box-shadow:0 0 8px rgba(0,229,255,0.2);
+}
+.toggle-label input[type=checkbox]:checked ~ .toggle-track::before{
+  content:'ON';right:auto;left:5px;color:var(--c);
+}
+.toggle-label input[type=checkbox]:checked ~ .toggle-track .toggle-thumb{
+  left:22px;background:var(--c);box-shadow:0 0 6px var(--c);
+}
+/* Amber toggle variant */
+.toggle-label.amber input[type=checkbox]:checked ~ .toggle-track{
+  border-color:var(--a);background:rgba(255,152,0,0.08);box-shadow:0 0 8px rgba(255,152,0,0.2);
+}
+.toggle-label.amber input[type=checkbox]:checked ~ .toggle-track::before{color:var(--a)}
+.toggle-label.amber input[type=checkbox]:checked ~ .toggle-track .toggle-thumb{
+  background:var(--a);box-shadow:0 0 6px var(--a);
+}
+/* Green toggle variant */
+.toggle-label.green input[type=checkbox]:checked ~ .toggle-track{
+  border-color:var(--g);background:rgba(0,230,118,0.08);box-shadow:0 0 8px rgba(0,230,118,0.2);
+}
+.toggle-label.green input[type=checkbox]:checked ~ .toggle-track::before{color:var(--g)}
+.toggle-label.green input[type=checkbox]:checked ~ .toggle-track .toggle-thumb{
+  background:var(--g);box-shadow:0 0 6px var(--g);
+}
+
+/* Range slider */
+.hud-range{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:3px;
+  background:rgba(0,229,255,0.1);outline:none;cursor:pointer;
+  border-radius:0;
+}
+.hud-range::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:14px;height:14px;
+  background:var(--c);cursor:pointer;
+  box-shadow:0 0 8px var(--c);
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
+}
+.hud-range::-moz-range-thumb{
+  width:14px;height:14px;background:var(--c);border:none;cursor:pointer;
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
+}
+.range-track{position:relative;margin-bottom:6px}
+.range-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--dim);letter-spacing:.08em}
+
+/* Form section divider */
+.form-divider{border:none;border-top:1px solid var(--border);margin:20px 0;position:relative}
+.form-divider::before{
+  content:attr(data-label);position:absolute;left:0;top:-9px;
+  font-size:8px;color:var(--dim);letter-spacing:.15em;
+  background:var(--s);padding-right:10px;text-transform:uppercase;
+}
+
+/* Full form example */
+.hud-form{display:flex;flex-direction:column;gap:0}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.form-row{grid-template-columns:1fr}}
+
+/* Submit area */
+.form-actions{display:flex;gap:12px;align-items:center;padding-top:8px}
+.btn-p{font-family:var(--font);font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--bg);background:var(--c);border:none;padding:10px 24px;cursor:pointer;transition:all .2s}
+.btn-p:hover{box-shadow:0 0 20px rgba(0,229,255,0.4)}
+.btn-g{font-family:var(--font);font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--c);background:transparent;border:1px solid var(--c);padding:10px 24px;cursor:pointer;transition:all .2s}
+.btn-g:hover{background:rgba(0,229,255,0.08)}
+
+/* Status tag */
+.input-status{font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:2px 6px}
+.input-status.valid{color:var(--g);border:1px solid rgba(0,230,118,0.3)}
+.input-status.error{color:var(--r);border:1px solid rgba(255,23,68,0.3);animation:alertFlash 2s infinite}
+
+/* ── KEYFRAMES ── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes tickerScroll{from{transform:translateX(100%)}to{transform:translateX(-200%)}}
+@keyframes alertFlash{0%,70%,100%{border-color:rgba(255,23,68,0.3)}85%{border-color:rgba(255,23,68,0.08)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,229,255,0.4)}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:16px">
+    <span class="topbar-title">AXIOM <b>// FORM ELEMENTS</b></span>
+  </div>
+  <div class="topbar-right">
+    <span><span class="dot-live"></span>SYSTEM ONLINE</span>
+    <span class="clock" id="clock"></span>
+    <a href="../showcase/index.html" style="color:var(--dim);text-decoration:none;letter-spacing:.1em;font-size:10px">← BACK</a>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="nav-sec">// forms</div>
+  <a class="nav-a active" href="#inputs">Text Inputs</a>
+  <a class="nav-a" href="#search">Search</a>
+  <a class="nav-a" href="#selects">Selectors</a>
+  <a class="nav-a" href="#radios">Radio Dots</a>
+  <a class="nav-a" href="#checkboxes">Checkboxes</a>
+  <a class="nav-a" href="#toggles">Toggles</a>
+  <a class="nav-a" href="#range">Range</a>
+  <a class="nav-a" href="#fullform">Full Form</a>
+  <div class="nav-sec">// system</div>
+  <a class="nav-a" href="../showcase/index.html">Design System</a>
+  <a class="nav-a" href="modals.html">Modals</a>
+  <a class="nav-a" href="tables.html">Tables</a>
+  <a class="nav-a" href="cards.html">Cards</a>
+  <a class="nav-a" href="../layouts/intel-dashboard.html">Intel Dashboard</a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+<!-- ═══ TEXT INPUTS ═══ -->
+<div class="sec" id="inputs">
+  <div class="sec-head"><span class="sec-id">F-01</span><span class="sec-t">Text Inputs</span></div>
+  <div class="sec-desc">Corner-bracket framing with cyan focus glow. States: default, focus, valid, invalid, warning, disabled.</div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-label">Standard Input</div>
+      <div class="field">
+        <label class="field-label">Operator Callsign</label>
+        <div class="input-wrap">
+          <input class="hud-input" type="text" placeholder="ENTER CALLSIGN...">
+        </div>
+        <span class="field-hint">Alpha-numeric identifier, 3-12 characters</span>
+      </div>
+      <div class="field">
+        <label class="field-label">Target Coordinates</label>
+        <div class="input-wrap">
+          <input class="hud-input valid" type="text" value="34.0522° N, 118.2437° W">
+        </div>
+        <span class="field-hint" style="color:var(--g)">✓ Coordinates validated</span>
+      </div>
+      <div class="field">
+        <label class="field-label">Access Token</label>
+        <div class="input-wrap">
+          <input class="hud-input invalid" type="text" value="AXE-7X-INVALID-KEY">
+        </div>
+        <span class="field-error">⚠ Authentication token rejected</span>
+      </div>
+      <div class="field">
+        <label class="field-label">Sector Code</label>
+        <div class="input-wrap">
+          <input class="hud-input warning" type="text" value="ALPHA-7G">
+        </div>
+        <span class="field-hint" style="color:var(--a)">⚡ Sector under monitoring</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Input with Icon Prefix</div>
+      <div class="field">
+        <label class="field-label">Network Address</label>
+        <div class="input-icon-wrap">
+          <span class="input-icon">⬡</span>
+          <input class="hud-input" type="text" placeholder="192.168.1.1">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Agent Frequency</label>
+        <div class="input-icon-wrap">
+          <span class="input-icon">≈</span>
+          <input class="hud-input" type="text" placeholder="437.525 MHz">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Encryption Key</label>
+        <div class="input-icon-wrap">
+          <span class="input-icon">⊕</span>
+          <input class="hud-input" type="password" placeholder="••••••••••••">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Mission Notes</label>
+        <div class="input-wrap">
+          <textarea class="hud-textarea" placeholder="ENTER MISSION PARAMETERS...&#10;Multi-line tactical notes supported."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SEARCH ═══ -->
+<div class="sec" id="search">
+  <div class="sec-head"><span class="sec-id">F-02</span><span class="sec-t">Search Target</span></div>
+  <div class="sec-desc">Full-width tactical search input with scan prefix and execute button.</div>
+
+  <div class="card">
+    <div class="card-label">Primary Search</div>
+    <div class="field">
+      <div class="search-input-wrap input-wrap">
+        <input class="hud-input" type="search" placeholder="SEARCH TARGET... ENTER ENTITY, SECTOR, OR THREAT ID">
+        <button class="search-btn">SCAN</button>
+      </div>
+    </div>
+    <div class="field" style="margin-top:8px">
+      <label class="field-label">Quick Filter</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="this.classList.toggle('active')" style="font-family:var(--font);font-size:9px;letter-spacing:.1em;color:var(--dim);background:var(--el);border:1px solid var(--border);padding:4px 12px;cursor:pointer;text-transform:uppercase;transition:all .15s" class="active">ALL</button>
+        <button onclick="this.classList.toggle('active')" style="font-family:var(--font);font-size:9px;letter-spacing:.1em;color:var(--dim);background:var(--el);border:1px solid var(--border);padding:4px 12px;cursor:pointer;text-transform:uppercase;transition:all .15s">THREATS</button>
+        <button onclick="this.classList.toggle('active')" style="font-family:var(--font);font-size:9px;letter-spacing:.1em;color:var(--dim);background:var(--el);border:1px solid var(--border);padding:4px 12px;cursor:pointer;text-transform:uppercase;transition:all .15s">SECTORS</button>
+        <button onclick="this.classList.toggle('active')" style="font-family:var(--font);font-size:9px;letter-spacing:.1em;color:var(--dim);background:var(--el);border:1px solid var(--border);padding:4px 12px;cursor:pointer;text-transform:uppercase;transition:all .15s">AGENTS</button>
+        <button onclick="this.classList.toggle('active')" style="font-family:var(--font);font-size:9px;letter-spacing:.1em;color:var(--dim);background:var(--el);border:1px solid var(--border);padding:4px 12px;cursor:pointer;text-transform:uppercase;transition:all .15s">ASSETS</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+  button.active{color:var(--c)!important;border-color:var(--c)!important;background:rgba(0,229,255,0.06)!important}
+  </style>
+</div>
+
+<!-- ═══ SELECTS ═══ -->
+<div class="sec" id="selects">
+  <div class="sec-head"><span class="sec-id">F-03</span><span class="sec-t">Tactical Selectors</span></div>
+  <div class="sec-desc">HUD-styled dropdowns with custom arrow indicator. Uppercase options for tactical clarity.</div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-label">Standard Selector</div>
+      <div class="field">
+        <label class="field-label">Operation Mode</label>
+        <div class="input-wrap">
+          <div class="hud-select-wrap">
+            <select class="hud-select">
+              <option>SELECT MODE...</option>
+              <option>RECON</option>
+              <option>STRIKE</option>
+              <option selected>SURVEILLANCE</option>
+              <option>EXTRACTION</option>
+              <option>SUPPORT</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Threat Level</label>
+        <div class="input-wrap">
+          <div class="hud-select-wrap">
+            <select class="hud-select">
+              <option>-- SELECT THREAT LEVEL --</option>
+              <option style="color:var(--g)">LOW // GREEN</option>
+              <option style="color:var(--a)" selected>MEDIUM // AMBER</option>
+              <option style="color:var(--r)">HIGH // RED</option>
+              <option style="color:#ff1744">CRITICAL // DEFCON 1</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Multi-Select Config</div>
+      <div class="field">
+        <label class="field-label">Active Sectors</label>
+        <div class="input-wrap">
+          <div class="hud-select-wrap">
+            <select class="hud-select" multiple style="height:120px;padding:0">
+              <option style="padding:8px 14px">SECTOR ALPHA-1</option>
+              <option selected style="padding:8px 14px">SECTOR BRAVO-3</option>
+              <option selected style="padding:8px 14px">SECTOR CHARLIE-7</option>
+              <option style="padding:8px 14px">SECTOR DELTA-2</option>
+              <option style="padding:8px 14px">SECTOR ECHO-9</option>
+            </select>
+          </div>
+        </div>
+        <span class="field-hint">Hold CTRL/CMD to select multiple</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RADIO BUTTONS ═══ -->
+<div class="sec" id="radios">
+  <div class="sec-head"><span class="sec-id">F-04</span><span class="sec-t">Radio — Radar Dots</span></div>
+  <div class="sec-desc">Radio buttons styled as radar ping dots with cyan lock-on state.</div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-label">Vertical Group</div>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" name="mode" checked>
+          <span class="radio-dot"></span>
+          <span>ACTIVE MONITORING</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="mode">
+          <span class="radio-dot"></span>
+          <span>STANDBY MODE</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="mode">
+          <span class="radio-dot"></span>
+          <span>SILENT RUNNING</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="mode">
+          <span class="radio-dot"></span>
+          <span>FULL BLACKOUT</span>
+        </label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Inline Group — Threat Classification</div>
+      <div class="radio-group inline">
+        <label class="radio-label">
+          <input type="radio" name="threat" checked>
+          <span class="radio-dot" style="border-color:var(--g)"></span>
+          <span style="color:var(--g)">LOW</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="threat">
+          <span class="radio-dot" style="border-color:var(--a)"></span>
+          <span style="color:var(--a)">MED</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="threat">
+          <span class="radio-dot" style="border-color:var(--r)"></span>
+          <span style="color:var(--r)">HIGH</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="threat">
+          <span class="radio-dot" style="border-color:#ff1744;animation:alertFlash 1.5s infinite"></span>
+          <span style="color:var(--r)">CRITICAL</span>
+        </label>
+      </div>
+      <div style="margin-top:20px">
+        <div class="card-label" style="margin-bottom:12px">Priority Level</div>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="priority">
+            <span class="radio-dot"></span>
+            <span>P1 — IMMEDIATE</span>
+            <span class="input-status error" style="margin-left:auto">URGENT</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="priority" checked>
+            <span class="radio-dot"></span>
+            <span>P2 — PRIORITY</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="priority">
+            <span class="radio-dot"></span>
+            <span>P3 — ROUTINE</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CHECKBOXES ═══ -->
+<div class="sec" id="checkboxes">
+  <div class="sec-head"><span class="sec-id">F-05</span><span class="sec-t">Checkboxes — Targeting Reticles</span></div>
+  <div class="sec-desc">Square targeting reticle checkboxes with crosshair on selection.</div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-label">System Permissions</div>
+      <div class="check-group">
+        <label class="check-label">
+          <input type="checkbox" checked>
+          <span class="check-box"></span>
+          <span>NETWORK ACCESS ENABLED</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" checked>
+          <span class="check-box"></span>
+          <span>FILE SYSTEM READ</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox">
+          <span class="check-box"></span>
+          <span>FILE SYSTEM WRITE</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" checked>
+          <span class="check-box"></span>
+          <span>MEMORY ACCESS</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox">
+          <span class="check-box"></span>
+          <span>EXTERNAL API CALLS</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox">
+          <span class="check-box" style="border-color:rgba(0,229,255,0.2)"></span>
+          <span style="opacity:.35">ROOT PRIVILEGES — LOCKED</span>
+        </label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Target Acquisition</div>
+      <div class="check-group">
+        <label class="check-label">
+          <input type="checkbox" checked>
+          <span class="check-box"></span>
+          <span>AUTO-TRACK ENABLED</span>
+          <span class="input-status valid" style="margin-left:auto">ON</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox">
+          <span class="check-box"></span>
+          <span>THERMAL OVERLAY</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" checked>
+          <span class="check-box"></span>
+          <span>SIGNAL INTERCEPT</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox">
+          <span class="check-box"></span>
+          <span>BIOMETRIC SCAN</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" checked>
+          <span class="check-box"></span>
+          <span>PROXIMITY ALERT</span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOGGLES ═══ -->
+<div class="sec" id="toggles">
+  <div class="sec-head"><span class="sec-id">F-06</span><span class="sec-t">Toggle Switches</span></div>
+  <div class="sec-desc">Amber (caution) and cyan (active) toggle states with animated thumb and ON/OFF label.</div>
+
+  <div class="g3">
+    <div class="card">
+      <div class="card-label">Cyan — Active State</div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <label class="toggle-label">
+          <input type="checkbox" checked>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span>SURVEILLANCE</span>
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox">
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span>RECON FEED</span>
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox" checked>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span>DATA SYNC</span>
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox">
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span>AUTO-BACKUP</span>
+        </label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Amber — Caution State</div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <label class="toggle-label amber">
+          <input type="checkbox" checked>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span>ALERT MODE</span>
+        </label>
+        <label class="toggle-label amber">
+          <input type="checkbox" checked>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span>WEAPON HOT</span>
+        </label>
+        <label class="toggle-label amber">
+          <input type="checkbox">
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span>LOCKDOWN</span>
+        </label>
+        <label class="toggle-label amber">
+          <input type="checkbox">
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span>BROADCAST</span>
+        </label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Green — Secure State</div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <label class="toggle-label green">
+          <input type="checkbox" checked>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span>SECURE CHANNEL</span>
+        </label>
+        <label class="toggle-label green">
+          <input type="checkbox" checked>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span>ENCRYPTION</span>
+        </label>
+        <label class="toggle-label green">
+          <input type="checkbox" checked>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span>AUTH LAYER</span>
+        </label>
+        <label class="toggle-label green">
+          <input type="checkbox">
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <span>VPN TUNNEL</span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RANGE ═══ -->
+<div class="sec" id="range">
+  <div class="sec-head"><span class="sec-id">F-07</span><span class="sec-t">Range Controls</span></div>
+  <div class="sec-desc">Diamond-thumb range sliders for numerical tactical parameters.</div>
+
+  <div class="card">
+    <div class="card-label">System Parameters</div>
+    <div class="g2">
+      <div>
+        <div class="field-label">Signal Gain — <span style="color:var(--c)" id="gainVal">67%</span></div>
+        <div class="range-track">
+          <input class="hud-range" type="range" min="0" max="100" value="67" oninput="document.getElementById('gainVal').textContent=this.value+'%'">
+        </div>
+        <div class="range-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+      </div>
+      <div>
+        <div class="field-label">Scan Frequency — <span style="color:var(--a)" id="freqVal">432 MHz</span></div>
+        <div class="range-track">
+          <input class="hud-range" type="range" min="100" max="900" value="432" style="--c:#ff9800" oninput="document.getElementById('freqVal').textContent=this.value+' MHz'">
+        </div>
+        <div class="range-labels"><span>100</span><span>500</span><span>900 MHz</span></div>
+      </div>
+      <div>
+        <div class="field-label">Threat Radius — <span style="color:var(--r)" id="radiusVal">2.5 km</span></div>
+        <div class="range-track">
+          <input class="hud-range" type="range" min="0" max="10" step=".1" value="2.5" style="--c:#ff1744" oninput="document.getElementById('radiusVal').textContent=parseFloat(this.value).toFixed(1)+' km'">
+        </div>
+        <div class="range-labels"><span>0 km</span><span>5 km</span><span>10 km</span></div>
+      </div>
+      <div>
+        <div class="field-label">Response Delay — <span style="color:var(--g)" id="delayVal">250 ms</span></div>
+        <div class="range-track">
+          <input class="hud-range" type="range" min="0" max="2000" value="250" style="--c:#00e676" oninput="document.getElementById('delayVal').textContent=this.value+' ms'">
+        </div>
+        <div class="range-labels"><span>0</span><span>1000</span><span>2000 ms</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FULL FORM ═══ -->
+<div class="sec" id="fullform">
+  <div class="sec-head"><span class="sec-id">F-08</span><span class="sec-t">Mission Briefing Form</span></div>
+  <div class="sec-desc">Complete form example combining all form elements with HUD styling.</div>
+
+  <div class="card">
+    <div class="card-label">Mission Parameters — CLASSIFIED</div>
+
+    <div class="hud-form">
+      <hr class="form-divider" data-label="// Operator ID">
+
+      <div class="form-row">
+        <div class="field">
+          <label class="field-label">Operator Name</label>
+          <div class="input-wrap">
+            <input class="hud-input" type="text" placeholder="CALLSIGN...">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Badge Number</label>
+          <div class="input-wrap">
+            <input class="hud-input" type="text" placeholder="AXE-XXXX">
+          </div>
+        </div>
+      </div>
+
+      <hr class="form-divider" data-label="// Mission Config">
+
+      <div class="form-row">
+        <div class="field">
+          <label class="field-label">Operation Type</label>
+          <div class="input-wrap">
+            <div class="hud-select-wrap">
+              <select class="hud-select">
+                <option>SELECT TYPE...</option>
+                <option>RECON</option>
+                <option>STRIKE</option>
+                <option selected>SURVEILLANCE</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Threat Classification</label>
+          <div class="input-wrap">
+            <div class="hud-select-wrap">
+              <select class="hud-select">
+                <option>SELECT LEVEL...</option>
+                <option>LOW</option>
+                <option selected>MEDIUM</option>
+                <option>HIGH</option>
+                <option>CRITICAL</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Primary Objective</label>
+        <div class="input-wrap">
+          <textarea class="hud-textarea" placeholder="ENTER MISSION OBJECTIVE...&#10;Detail primary target, secondary goals, and extraction protocol."></textarea>
+        </div>
+      </div>
+
+      <hr class="form-divider" data-label="// Systems">
+
+      <div class="form-row">
+        <div>
+          <div class="card-label">Active Systems</div>
+          <div class="check-group">
+            <label class="check-label">
+              <input type="checkbox" checked>
+              <span class="check-box"></span>
+              <span>COMMS ONLINE</span>
+            </label>
+            <label class="check-label">
+              <input type="checkbox" checked>
+              <span class="check-box"></span>
+              <span>SURVEILLANCE ACTIVE</span>
+            </label>
+            <label class="check-label">
+              <input type="checkbox">
+              <span class="check-box"></span>
+              <span>WEAPONS FREE</span>
+            </label>
+          </div>
+        </div>
+        <div>
+          <div class="card-label">Priority Level</div>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="fp">
+              <span class="radio-dot"></span>
+              <span>P1 — IMMEDIATE</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="fp" checked>
+              <span class="radio-dot"></span>
+              <span>P2 — PRIORITY</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="fp">
+              <span class="radio-dot"></span>
+              <span>P3 — ROUTINE</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <hr class="form-divider" data-label="// Submit">
+
+      <div class="form-actions">
+        <button class="btn-p">AUTHORIZE MISSION</button>
+        <button class="btn-g">SAVE DRAFT</button>
+        <span style="font-size:9px;color:var(--dim);letter-spacing:.1em;margin-left:auto">AES-256 ENCRYPTED TRANSMISSION</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-scroll">
+    <span class="hl">AXIOM</span> FORM ELEMENTS &nbsp;&#x2502;&nbsp;
+    TEXT INPUTS &nbsp;&#x2502;&nbsp;
+    <span class="am">TACTICAL SELECTORS</span> &nbsp;&#x2502;&nbsp;
+    RADAR DOT RADIOS &nbsp;&#x2502;&nbsp;
+    <span class="hl">TARGETING RETICLE</span> CHECKBOXES &nbsp;&#x2502;&nbsp;
+    AMBER/CYAN TOGGLE SWITCHES &nbsp;&#x2502;&nbsp;
+    <span class="am">DIAMOND THUMB</span> RANGE SLIDERS &nbsp;&#x2502;&nbsp;
+    ALL CSS-ONLY FORM SYSTEM &nbsp;&#x2502;&nbsp;
+  </div>
+</div>
+
+<script>
+function updateClock(){
+  const d=new Date();
+  document.getElementById('clock').textContent='UTC '+d.toISOString().substr(11,8);
+}
+setInterval(updateClock,1000);updateClock();
+// Smooth scroll nav
+document.querySelectorAll('.nav-a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    document.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth'});
+    document.querySelectorAll('.nav-a').forEach(n=>n.classList.remove('active'));
+    a.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
